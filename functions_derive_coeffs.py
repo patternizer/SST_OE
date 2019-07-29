@@ -13,7 +13,7 @@ import numpy as np
 import xarray as xr
 import cartopy.crs as ccrs
 import matplotlib.pylab as plt
-
+import dask
 
 #%%
 
@@ -223,7 +223,8 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     ax4 = fig.add_subplot(2, 2, 4)    
     plt.hist(w)
     plt.title('TCWV')
-    plt.show()
+    plt.savefig('tcwv.png')
+    plt.close('all')
     
     # Locations
     fig = plt.figure(figsize=(12,8))
@@ -244,7 +245,8 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     ax3.set_global()
     ax3.plot(lon, lat, ',')
     fig.tight_layout()
-    plt.show()
+    plt.savefig('locations.png')
+    plt.close('all')
 
     fig = plt.figure(figsize=(12,8))
     ax1 = fig.add_subplot(2, 2, 1)    
@@ -259,7 +261,7 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     ax4 = fig.add_subplot(2, 2, 4)    
     plt.plot(elem, y3-f3,'.')
     plt.title('Y3-F3 vs elem')
-    plt.show() 
+    plt.savefig('y3-f3-vs-elem.png') 
  
     fig = plt.figure(figsize=(12,8))
     ax1 = fig.add_subplot(2, 2, 1)    
@@ -274,8 +276,8 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     ax4 = fig.add_subplot(2, 2, 4)    
     plt.plot(elem, y4-f4,'.')
     plt.title('Y4-F4 vs elem')
-    plt.show() 
-
+    plt.savefig('y4-f4-vs-elem.png') 
+    plt.close('all')
 
     fig = plt.figure(figsize=(12,8))
     ax1 = fig.add_subplot(2, 2, 1)    
@@ -290,8 +292,8 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     ax4 = fig.add_subplot(2, 2, 4)    
     plt.plot(elem, y5-f5,'.')
     plt.title('Y5-F5 vs elem')
-    plt.show() 
-
+    plt.savefig('y5-f5-vs-elem.png') 
+    plt.close('all')
 
     fig = plt.figure(figsize=(12,8))
     ax1 = fig.add_subplot(2, 2, 1)    
@@ -306,9 +308,9 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     ax4 = fig.add_subplot(2, 2, 4)    
     plt.scatter(w, fw5/w,c=x,s=1.5)
     plt.title('dF5dw vs TCWV by SST')
-    plt.show() 
+    plt.savefig('df5dw-vs-tcwv-by-sst.png') 
+    plt.close('all')
 
-    
     return
     
 #%%
@@ -681,6 +683,7 @@ def diagnostic_plots(xret, xd3, solz, satz, lat, lon, time, elem, \
     invars.append([xret-xd3, title, solz, 10, 'Sol ZA',sens,'Sens.'])
 
     outvars = []
+    fig,ax = plt.subplots()
     for i in invars: 
         j = run_summary_stats(i[0],i[1],i[2],i[3],i[4])
         outvars.append(j)
@@ -690,16 +693,17 @@ def diagnostic_plots(xret, xd3, solz, satz, lat, lon, time, elem, \
         plt.plot(j[5,:],j[ind,:],color='red')
         plt.plot(j[5,:],j[ind,:]+j[ind+1,:],'-.',color='red')
         plt.plot(j[5,:],j[ind,:]-j[ind+1,:],'-.',color='red')
-
-        plt.show()
-    
-    
-    
+    pltstr = str(i) + '.png'
+    plt.savefig(pltstr)
+    plt.close('all')
+ 
     summary_stats(xret-xd3, title = title)
 
+    fig,ax = plt.subplots()
     plt.hist((xret-xd3)*100)
     plt.title(title+', cK')  
-    plt.show()
+    plt.savefig('cK.png')
+    plt.close('all')
     
     summary_stats(sens, title = 'Sensitivity')
     
@@ -904,18 +908,21 @@ def update_beta_gamma3(F, Fx, Fw, Z, Se, Sa, betai, coef_list, gammai, \
         
     if makeplot:
         for i in range(nb):
+            fig,ax = plt.subplots()
             plt.plot(np.asarray(iZr[nz+i,:]).flatten())
-            plt.title('Coefficient'+str(i))
-            plt.show()
+            plt.title('Coefficient'+str(i))            
+            pltstr = 'Coefficient'+'_'+str(i)+'.png'  
+            plt.savefig(pltstr)
+            plt.close('all')
 
-        for i in range(divsg) : 
+        for i in range(divsg): 
+            fig,ax = plt.subplots()
             plt.plot(np.asarray(iZr[-ng,bini[:]==i]).flatten())
-        #plt.ylim((-0.5,0.5))
+            # plt.ylim((-0.5,0.5))
             plt.title('Gamma Correction Convergence')
             plt.legend((str(gvals.astype('int'))))
-#          plt.savefig('/Users/chris/Projects/SSTCCI/BridgingHarmonisation/Plots/plot_from_update_gamma'+tag+'_stratum_'+str(i)+'.png')
-            plt.show()
-
+            pltstr = 'plot_from_update_gamma'+tag+'_stratum_'+str(i)+'.png'
+            plt.savefig(pltstr)
        
     if stratg:
         gc = piecewise_model(gammaout, auxg, gvals, extrapolate = extrapolate)
