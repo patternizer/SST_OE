@@ -13,13 +13,16 @@ import numpy as np
 import xarray as xr
 import cartopy.crs as ccrs
 import matplotlib.pylab as plt
-
+import dask
 
 
 #%%
     
-
-FUNCpath = '/Users/chris/Projects/FIDUCEO/ReHarm/'
+################
+# MT: 20190729 #
+################
+#FUNCpath = '/Users/chris/Projects/FIDUCEO/ReHarm/'
+FUNCpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
 import sys
 sys.path.append(FUNCpath)
 from functions_derive_coeffs import *
@@ -31,12 +34,23 @@ current_sensor = 'm02' # The code for the AVHRR being looked at
 sat = b'MTA'  # same thing but different naming convention!
 
 # Local path names for counts matchup data
-path = '/Users/chris/Projects/FIDUCEO/ReHarm/Data/'
+
+################
+# MT: 20190729 #
+################
+#path = '/Users/chris/Projects/FIDUCEO/ReHarm/Data/'
+path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/DATA/'
 dirS = 'source/'
 dirG = 'gbcsout/'
 
 # We will loop through all the files and reduce to the matches we want to keep
-pathout = '/Users/chris/Projects/FIDUCEO/ReHarm/DataReduced/'
+
+################
+# MT: 20190729 #
+################
+# pathout = '/Users/chris/Projects/FIDUCEO/ReHarm/DataReduced/'
+pathout = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/RUN'
+
 try:
     os.mkdir(pathout+dirG)
     os.mkdir(pathout+dirS)
@@ -44,10 +58,20 @@ except:
     print('directories exist')
 
 # Local path for initial harmonisation coefficients
-Hpath = '/Users/chris/Projects/FIDUCEO/Covariance/HARMONISATION/'
+
+################
+# MT: 20190729 #
+################
+# Hpath = '/Users/chris/Projects/FIDUCEO/Covariance/HARMONISATION/'
+Hpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/HARMONISATION/v0.3Bet'
 
 # Setup for Radiance <-> BT directory
-lutdir = '/Users/chris/Projects/FIDUCEO/MMD-Harm/'
+
+################
+# MT: 20190729 #
+################
+# lutdir = '/Users/chris/Projects/FIDUCEO/MMD-Harm/'
+lutdir = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/'
 
 # read look up table
 lut = read_in_LUT(sat, lutdir = lutdir)
@@ -376,5 +400,5 @@ plt.show()
 
 plt.plot(t4r,gc1,'.')
 plt.title('TCWV correction vs. BT')
-plt.show()
+plt.savefig('')
 
