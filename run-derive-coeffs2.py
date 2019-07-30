@@ -13,7 +13,6 @@ import numpy as np
 import xarray as xr
 import cartopy.crs as ccrs
 import matplotlib.pylab as plt
-import dask
 
 
 #%%
@@ -175,8 +174,7 @@ mflag, mpclr, \
 #%%
    
 # Some plots just to see how the data are distributed
-run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
-    y1, y2, y3a, y3, y4, y5, solz, satz, lat, lon, time, elem, line, w)
+run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, y1, y2, y3a, y3, y4, y5, solz, satz, lat, lon, time, elem, line, w)
 
 #%%
 
@@ -197,24 +195,47 @@ lict3, lict4, lict5 = bt2rad(tict,3,lut), bt2rad(tict,4,lut), bt2rad(tict,5,lut)
 # calculate the new "observed" BTs
 l3 = count2rad(c3,cs3,cict3,lict3,nT,3,beta[0:4])
 t3 = rad2bt(l3,3,lut)
-plt.plot(t3,l3,'.')
 tb3 = dbtdL(t3,3,lut) * drad_da(c3,cs3,cict3,lict3,nT,3)
+
+fig,ax = plt.subplots()
+plt.plot(t3,l3,'.')
+plt.savefig('t3_l3.png')
+plt.close('all')
+
+fig,ax = plt.subplots()
 plt.plot(l3,tb3[0,:],'.')
+plt.savefig('l3_tb3.png')
+plt.close('all')
 
 only2chan = np.where(t3 == np.nan) # flag for when only 11 and 12 are present
 
-
 l4 = count2rad2(c4,cs4,cict4,lict4,nT,4,beta[4:8])
 t4 = rad2bt(l4,4,lut)
-plt.plot(t4,l4,'.')
 tb4 = dbtdL(t4,4,lut) * drad_da(c4,cs4,cict4,lict4,nT,4)
+
+fig,ax = plt.subplots()
+plt.plot(t4,l4,'.')
+plt.savefig('t4_l4.png')
+plt.close('all')
+
+fig,ax = plt.subplots()
 plt.plot(l4,tb4[0,:],'.')
+plt.savefig('l4_tb4.png')
+plt.close('all')
 
 l5 = count2rad2(c5,cs5,cict5,lict5,nT,5,beta[8:])
 t5 = rad2bt(l5,5,lut)
-plt.plot(t5,l5,'.')
 tb5 = dbtdL(t5,5,lut) * drad_da(c5,cs5,cict5,lict5,nT,5)
+
+fig,ax = plt.subplots()
+plt.plot(t5,l5,'.')
+plt.savefig('t5_l5.png')
+plt.close('all')
+
+fig,ax = plt.subplots()
 plt.plot(l5,tb5[0,:],'.')
+plt.savefig('l5_tb5.png')
+plt.close('all')
 
 #%%
 
@@ -243,21 +264,17 @@ print(np.sqrt(sens3 @ S3 @ sens3.T))
 xt = xb-0.17+273.15 # the reference skin temperature we assume
 
 # Create the data for non-bias aware OE in matrix form
-Yn, Fn, Fx, Fw, Zan, K = make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
-    x + np.mean(xt-x), y3, y4, y5, w, adj_for_x = True, fix_ch3_nan = True)
+Yn, Fn, Fx, Fw, Zan, K = make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, x + np.mean(xt-x), y3, y4, y5, w, adj_for_x = True, fix_ch3_nan = True)
 nc = np.shape(Yn)[0]
 
 
 # Set up initial estimates of covariance matrices for a first retrieval attempt
 SSen, SSan = initial_covs(sec, w, xatype = 'nwp', scale = 0.25) # using uncertainty appropriate to prior
 
-
 Zr, Sr, Ar = optimal_estimates(Zan, K, SSan, SSen, Yn, Fn)
 xoe0 = np.array(Zr[0,:] ).squeeze()
 sens0 = np.array(Ar[0,0] ).squeeze()*100
 ux0 = np.sqrt(np.array(Sr[0,0] ).squeeze())
-
-
 
 # Printout stats and plots
 print('---------- STATS and PLOTS no bias correction using GBCS cal & initial covariances ------------')
@@ -269,10 +286,8 @@ stats0 = diagnostic_plots(xoe0, xt, solz, satz, lat, lon, time, elem, w, U, sens
 
 # Create the data for non-bias aware OE in matrix form
 # NOTE also changes the inputs if fix_ch3_nan is TRUE
-Yn, Fn, Fx, Fw, Zan, K = make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
-    x+ np.mean(xt-x), t3, t4, t5, w, adj_for_x = True, fix_ch3_nan = True)
+Yn, Fn, Fx, Fw, Zan, K = make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, x+ np.mean(xt-x), t3, t4, t5, w, adj_for_x = True, fix_ch3_nan = True)
 nc = np.shape(Yn)[0]
-
 
 # Set up initial estimates of covariance matrices for a first retrieval attempt
 SSen, SSan = initial_covs(sec, w, xatype = 'nwp', scale = 0.25) # using uncertainty appropriate to prior
@@ -299,7 +314,6 @@ ux0 = np.sqrt(np.array(Sr[0,0] ).squeeze())
 print('---------- STATS and PLOTS no bias correction using GBCS cal & initial covariances ------------')
 stats0 = diagnostic_plots(xoe0, xt, solz, satz, lat, lon, time, elem, w, U, sens0)
 
-
 #%%
 
 # Adjust the simulations to match the starting point from skin-adjusted buoy SST
@@ -308,7 +322,6 @@ Y0, F0, Fx0, Fw0, Z0, K0 = make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw
 
 # Set up initial estimates of covariance matrices 
 SSe0, SSa0 = initial_covs(sec, w, xatype = 'buoy', scale = 0.25) # using uncertainty appropriate to buoy as prior
-
 
 # Set the coefficients we are going to optimise
 #coef_list = [True, False, False, False, True, False, False, False, True, False, False, False]  # this is doing only offset coeffciients
@@ -324,12 +337,8 @@ calinfo = [c3,cs3,cict3,lict3,c4,cs4,cict4,lict4,c5,cs5,cict5,lict5,nT]
 gamma0 = np.zeros(divsg)
 ugamma0 = np.full(divsg, 0.2) # which is about 1% of the mean TCWV to start with
 
-
-beta1, gamma1, gvals1, gc1, Sbeta1, Sgamma1 = update_beta_gamma3(F0, Fx0, Fw0, Z0, SSe0, SSa0, beta, coef_list, gamma0, \
-                      w, divsg, 1000000, lut, calinfo, Sbeta*400, \
-                      ugamma0,  accel = 5, extrapolate = True)
-        # *X and accel are just to allow values to change more rapidly -- plots verify that it is still stable
-
+beta1, gamma1, gvals1, gc1, Sbeta1, Sgamma1 = update_beta_gamma3(F0, Fx0, Fw0, Z0, SSe0, SSa0, beta, coef_list, gamma0, w, divsg, 1000000, lut, calinfo, Sbeta*400, ugamma0,  accel = 5, extrapolate = True)
+# *X and accel are just to allow values to change more rapidly -- plots verify that it is still stable
 
 l3r,t3r,tb3r,l4r,t4r,tb4r,l5r,t5r,tb5r,only2chan = calc_obs(calinfo, beta1)
 
@@ -344,13 +353,9 @@ np.sum(np.nanmean(tb4,axis=1)*(beta1-beta)[4:8])
 np.nanmean(t5r-t5)
 np.sum(np.nanmean(tb5,axis=1)*(beta1-beta)[8:])
 
-
 # Now do a new retrieval 
-Y1, F1, Fx1, Fw1, Za1, K1 = make_matrices(f3+gc1*fw3/w, f4+gc1*fw4/w, f5+gc1*fw5/w, \
-                                        fx3, fx4, fx5, fw3, fw4, fw5, x, \
-    x+ np.mean(xt-x), t3r, t4r, t5r, w+gc1, adj_for_x = True, fix_ch3_nan = True)
+Y1, F1, Fx1, Fw1, Za1, K1 = make_matrices(f3+gc1*fw3/w, f4+gc1*fw4/w, f5+gc1*fw5/w, fx3, fx4, fx5, fw3, fw4, fw5, x, x+ np.mean(xt-x), t3r, t4r, t5r, w+gc1, adj_for_x = True, fix_ch3_nan = True)
 nc = np.shape(Y1)[0]
-
 
 # Set up initial estimates of covariance matrices for a first retrieval attempt
 SSen, SSan = initial_covs(sec, w, xatype = 'nwp', scale = 0.25) # using uncertainty appropriate to prior
@@ -374,31 +379,48 @@ l3old = count2rad(c3counts,np.nanmean(cs3),np.nanmean(cict3),np.nanmean(lict3),0
 t3old = rad2bt(l3old,3,lut)
 l3new = count2rad(c3counts,np.nanmean(cs3),np.nanmean(cict3),np.nanmean(lict3),0,3,beta1[0:4])
 t3new = rad2bt(l3new,3,lut)
+
+fig,ax - plt.subplots()
 plt.plot(c3counts,t3new-t3old)
 plt.title('BT change as function of counts')
+plt.savefig('bt-change-with-counts-c3.png')
+plt.close('all')
+
 c4counts = [i for i in range(400, 860, 10)]
 l4old = count2rad(c4counts,np.nanmean(cs4),np.nanmean(cict4),np.nanmean(lict4),0,4,beta[4:8])
 t4old = rad2bt(l4old,4,lut)
 l4new = count2rad(c4counts,np.nanmean(cs4),np.nanmean(cict4),np.nanmean(lict4),0,4,beta1[4:8])
 t4new = rad2bt(l4new,4,lut)
+
+fig,ax - plt.subplots()
 plt.plot(c4counts,t4new-t4old)
+plt.savefig('bt-change-with-counts-c4.png')
+plt.close('all')
+
 c5counts = [i for i in range(380, 840, 10)]
 l5old = count2rad(c5counts,np.nanmean(cs5),np.nanmean(cict5),np.nanmean(lict5),0,5,beta[8:])
 t5old = rad2bt(l5old,5,lut)
 l5new = count2rad(c5counts,np.nanmean(cs5),np.nanmean(cict5),np.nanmean(lict5),0,5,beta1[8:])
 t5new = rad2bt(l5new,5,lut)
+
+fig,ax - plt.subplots()
 plt.plot(c5counts,t5new-t5old)
 plt.legend(['Revised minus harmon., Ch3', 'Ch4', 'Ch5'])
-plt.show()
+plt.savefig('bt-change-with-counts-c5.png')
+plt.close('all')
 
+fig,ax - plt.subplots()
 plt.title('BT change as function of scene temperature')
 plt.plot(t3new,t3new-t3old)
 plt.plot(t4new,t4new-t4old)
 plt.plot(t5new,t5new-t5old)
 plt.legend(['Revised minus harmon., Ch3', 'Ch4', 'Ch5'])
-plt.show()
+plt.savefig('bt-change-with-scene-temperature-c345.png')
+plt.close('all')
 
+fig,ax = plt.subplots()
 plt.plot(t4r,gc1,'.')
 plt.title('TCWV correction vs. BT')
-plt.savefig('')
+plt.savefig('tcwv-correction-versus-bt.png')
+plt.close('all')
 
