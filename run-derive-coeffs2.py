@@ -13,7 +13,6 @@ import numpy as np
 import xarray as xr
 import cartopy.crs as ccrs
 import matplotlib.pylab as plt
-import dask
 
 
 #%%
