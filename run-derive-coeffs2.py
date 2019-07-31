@@ -21,7 +21,8 @@ import matplotlib.pylab as plt
 # MT: 20190729 #
 ################
 #FUNCpath = '/Users/chris/Projects/FIDUCEO/ReHarm/'
-FUNCpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
+#FUNCpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
+FUNCpath = '/Users/michaeltaylor/Desktop/REPOS/SST_OE/'
 import sys
 sys.path.append(FUNCpath)
 from functions_derive_coeffs import *
@@ -38,7 +39,8 @@ sat = b'MTA'  # same thing but different naming convention!
 # MT: 20190729 #
 ################
 #path = '/Users/chris/Projects/FIDUCEO/ReHarm/Data/'
-path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/DATA/'
+#path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/DATA/'
+path = '/Users/michaeltaylor/Desktop/REPOS/SST_OE/DATA/'
 dirS = 'source/'
 dirG = 'gbcsout/'
 
@@ -48,7 +50,8 @@ dirG = 'gbcsout/'
 # MT: 20190729 #
 ################
 # pathout = '/Users/chris/Projects/FIDUCEO/ReHarm/DataReduced/'
-pathout = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/RUN'
+#pathout = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
+pathout = '/Users/michaeltaylor/Desktop/REPOS/SST_OE/'
 
 try:
     os.mkdir(pathout+dirG)
@@ -62,7 +65,8 @@ except:
 # MT: 20190729 #
 ################
 # Hpath = '/Users/chris/Projects/FIDUCEO/Covariance/HARMONISATION/'
-Hpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/HARMONISATION/v0.3Bet'
+#Hpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/HARMONISATION/v0.3Bet'
+Hpath = '/Users/michaeltaylor/Desktop/REPOS/ENSEMBLE_SST/DATA/HARMONISATION/v0.3Bet/'
 
 # Setup for Radiance <-> BT directory
 
@@ -70,7 +74,8 @@ Hpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/HARMONISATION/v0.
 # MT: 20190729 #
 ################
 # lutdir = '/Users/chris/Projects/FIDUCEO/MMD-Harm/'
-lutdir = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/'
+# lutdir = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/'
+lutdir = '/Users/michaeltaylor/Desktop/REPOS/ENSEMBLE_SST/DATA/'
 
 # read look up table
 lut = read_in_LUT(sat, lutdir = lutdir)
@@ -78,8 +83,6 @@ lut = read_in_LUT(sat, lutdir = lutdir)
 #%%
 ########## TYPICALLY CAN SKIP
 # Tests on the various RT modules that I will use
-
-
 
 rad3 = count2rad2(800,1000,870,0.33,0,3,np.array([2.67393749e-03,  2.21853418e-02,  1.15214074e-0]))
 bt3 = rad2bt(rad3,3,lut)
@@ -104,7 +107,6 @@ drad_da2(700.,1000,800,100.,1,4)
 
 bt5 = rad2bt(100,5,lut)
 dbtdL(bt5,5,lut), 100*(rad2bt(100+0.005,5,lut)-rad2bt(100-0.005,5,lut))
-
 
 #%%
 fn = check_compatible_files(path, dirS, dirG)
@@ -188,7 +190,6 @@ beta, ubeta, Sbeta = read_harm_init(Hpath,'m02')
 nT = (tinst - 286.125823)/0.049088 
 # placeholder for now -- these numbers for MetopA need to be generalised to other sensors
 
-
 # created lict values
 lict3, lict4, lict5 = bt2rad(tict,3,lut), bt2rad(tict,4,lut), bt2rad(tict,5,lut)
 
@@ -199,11 +200,13 @@ tb3 = dbtdL(t3,3,lut) * drad_da(c3,cs3,cict3,lict3,nT,3)
 
 fig,ax = plt.subplots()
 plt.plot(t3,l3,'.')
+plt.title('t3 versus l3')
 plt.savefig('t3_l3.png')
 plt.close('all')
 
 fig,ax = plt.subplots()
 plt.plot(l3,tb3[0,:],'.')
+plt.title('l3 versus tb3')
 plt.savefig('l3_tb3.png')
 plt.close('all')
 
@@ -215,11 +218,13 @@ tb4 = dbtdL(t4,4,lut) * drad_da(c4,cs4,cict4,lict4,nT,4)
 
 fig,ax = plt.subplots()
 plt.plot(t4,l4,'.')
+plt.title('t4 versus l4')
 plt.savefig('t4_l4.png')
 plt.close('all')
 
 fig,ax = plt.subplots()
 plt.plot(l4,tb4[0,:],'.')
+plt.title('l4 versus tb4')
 plt.savefig('l4_tb4.png')
 plt.close('all')
 
@@ -229,11 +234,13 @@ tb5 = dbtdL(t5,5,lut) * drad_da(c5,cs5,cict5,lict5,nT,5)
 
 fig,ax = plt.subplots()
 plt.plot(t5,l5,'.')
+plt.title('t5 versus l5')
 plt.savefig('t5_l5.png')
 plt.close('all')
 
 fig,ax = plt.subplots()
 plt.plot(l5,tb5[0,:],'.')
+plt.title('l5 versus tb5')
 plt.savefig('l5_tb5.png')
 plt.close('all')
 
@@ -253,9 +260,7 @@ sens3 = np.matrix(np.nanmean(tb3,axis=1))
 S3 = np.matrix(Sbeta[:4,:4])
 print(np.sqrt(sens3 @ S3 @ sens3.T))
 
-
 #%%
-
 
 # Undertake an initial OE starting from NWP prior and see how close we get buoy truth
 # To be illuminating, the prior must be overall unbiased so that any biases arises
@@ -279,7 +284,6 @@ ux0 = np.sqrt(np.array(Sr[0,0] ).squeeze())
 # Printout stats and plots
 print('---------- STATS and PLOTS no bias correction using GBCS cal & initial covariances ------------')
 stats0 = diagnostic_plots(xoe0, xt, solz, satz, lat, lon, time, elem, w, U, sens0)
-
 
 #%%
 # Same again, new harmonisation for comparison
@@ -340,7 +344,11 @@ ugamma0 = np.full(divsg, 0.2) # which is about 1% of the mean TCWV to start with
 beta1, gamma1, gvals1, gc1, Sbeta1, Sgamma1 = update_beta_gamma3(F0, Fx0, Fw0, Z0, SSe0, SSa0, beta, coef_list, gamma0, w, divsg, 1000000, lut, calinfo, Sbeta*400, ugamma0,  accel = 5, extrapolate = True)
 # *X and accel are just to allow values to change more rapidly -- plots verify that it is still stable
 
-l3r,t3r,tb3r,l4r,t4r,tb4r,l5r,t5r,tb5r,only2chan = calc_obs(calinfo, beta1)
+################
+# MT: 20190731 #
+################
+#l3r,t3r,tb3r,l4r,t4r,tb4r,l5r,t5r,tb5r,only2chan = calc_obs(calinfo, beta1)
+l3r,t3r,tb3r,l4r,t4r,tb4r,l5r,t5r,tb5r,only2chan = calc_obs(calinfo, beta1, tinst)
 
 #%%
 # Some sanity checks
@@ -359,7 +367,7 @@ nc = np.shape(Y1)[0]
 
 # Set up initial estimates of covariance matrices for a first retrieval attempt
 SSen, SSan = initial_covs(sec, w, xatype = 'nwp', scale = 0.25) # using uncertainty appropriate to prior
-
+x
 # Undertake an initial OE starting from NWP prior and see how close we get buoy truth
 Zr, Sr, Ar = optimal_estimates(Za1, K1, SSan, SSen, Y1, F1)
 xoe1 = np.array(Zr[0,:] ).squeeze()
@@ -381,8 +389,8 @@ l3new = count2rad(c3counts,np.nanmean(cs3),np.nanmean(cict3),np.nanmean(lict3),0
 t3new = rad2bt(l3new,3,lut)
 
 fig,ax - plt.subplots()
+plt.title('BT change as function of counts: c3')
 plt.plot(c3counts,t3new-t3old)
-plt.title('BT change as function of counts')
 plt.savefig('bt-change-with-counts-c3.png')
 plt.close('all')
 
@@ -393,6 +401,7 @@ l4new = count2rad(c4counts,np.nanmean(cs4),np.nanmean(cict4),np.nanmean(lict4),0
 t4new = rad2bt(l4new,4,lut)
 
 fig,ax - plt.subplots()
+plt.title('BT change as function of counts: c4')
 plt.plot(c4counts,t4new-t4old)
 plt.savefig('bt-change-with-counts-c4.png')
 plt.close('all')
@@ -404,6 +413,7 @@ l5new = count2rad(c5counts,np.nanmean(cs5),np.nanmean(cict5),np.nanmean(lict5),0
 t5new = rad2bt(l5new,5,lut)
 
 fig,ax - plt.subplots()
+plt.title('BT change as function of counts: c5')
 plt.plot(c5counts,t5new-t5old)
 plt.legend(['Revised minus harmon., Ch3', 'Ch4', 'Ch5'])
 plt.savefig('bt-change-with-counts-c5.png')
@@ -419,8 +429,8 @@ plt.savefig('bt-change-with-scene-temperature-c345.png')
 plt.close('all')
 
 fig,ax = plt.subplots()
-plt.plot(t4r,gc1,'.')
 plt.title('TCWV correction vs. BT')
+plt.plot(t4r,gc1,'.')
 plt.savefig('tcwv-correction-versus-bt.png')
 plt.close('all')
 
