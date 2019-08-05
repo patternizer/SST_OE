@@ -6,14 +6,15 @@ Created on Thu Jul 11 15:04:19 2019
 @author: chris
 """
 
-
 import os
 import datetime
 import numpy as np
 import xarray as xr
 import cartopy.crs as ccrs
 import matplotlib.pylab as plt
-
+os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
+import pickle
+import dask
 
 #%%
     
@@ -48,7 +49,7 @@ dirG = 'gbcsout/'
 # MT: 20190729 #
 ################
 # pathout = '/Users/chris/Projects/FIDUCEO/ReHarm/DataReduced/'
-pathout = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/RUN'
+pathout = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
 
 try:
     os.mkdir(pathout+dirG)
@@ -62,7 +63,7 @@ except:
 # MT: 20190729 #
 ################
 # Hpath = '/Users/chris/Projects/FIDUCEO/Covariance/HARMONISATION/'
-Hpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/HARMONISATION/v0.3Bet'
+Hpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/HARMONISATION/v0.3Bet/'
 
 # Setup for Radiance <-> BT directory
 
