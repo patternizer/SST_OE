@@ -6,13 +6,15 @@ Created on Thu Jul 18 12:46:33 2019
 @author: chris
 """
 
-
 import os
 import datetime
 import numpy as np
 import xarray as xr
 import cartopy.crs as ccrs
 import matplotlib.pylab as plt
+os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
+import pickle
+import dask
 
 #%%
 
@@ -418,8 +420,10 @@ def count2rad2(Ce,Cs,Cict,Lict,Tinst,channel,coef):
 
 def read_in_LUT(avhrr_sat, lutdir = './'):
     LUT = {}
-    all_lut_radiance_dict = np.load(lutdir+'lut_radiance.npy', encoding='bytes').item()
-    all_lut_BT_dict = np.load(lutdir+'lut_BT.npy', encoding='bytes').item()
+#    all_lut_radiance_dict = np.load(lutdir+'lut_radiance.npy', encoding='bytes').item()
+#    all_lut_BT_dict = np.load(lutdir+'lut_BT.npy', encoding='bytes').item()
+    all_lut_radiance_dict = np.load(lutdir+'lut_radiance.npy', encoding='bytes', allow_pickle=True).item()
+    all_lut_BT_dict = np.load(lutdir+'lut_BT.npy', encoding='bytes', allow_pickle=True).item()
     try:
         LUT['L'] = all_lut_radiance_dict[avhrr_sat][:]
         LUT['BT'] = all_lut_BT_dict[avhrr_sat][:]
@@ -682,19 +686,21 @@ def diagnostic_plots(xret, xd3, solz, satz, lat, lon, time, elem, \
     invars.append([xret-xd3, title, solz, 10, 'Sol ZA',sens,'Sens.'])
 
     outvars = []
-    fig,ax = plt.subplots()
+    k = 0
     for i in invars: 
+        k += 1
         j = run_summary_stats(i[0],i[1],i[2],i[3],i[4])
         outvars.append(j)
+        fig,ax = plt.subplots()
         plt.scatter(i[2],i[0],c=i[5],s=1.5)
         plt.ylim(-1.0,1.0)
         plt.title(i[1]+' vs '+i[4]+' by '+i[6])
         plt.plot(j[5,:],j[ind,:],color='red')
         plt.plot(j[5,:],j[ind,:]+j[ind+1,:],'-.',color='red')
         plt.plot(j[5,:],j[ind,:]-j[ind+1,:],'-.',color='red')
-    pltstr = str(i) + '.png'
-    plt.savefig(pltstr)
-    plt.close('all')
+        pltstr = str(k) + '.png'
+        plt.savefig(pltstr)
+        plt.close('all')
  
     summary_stats(xret-xd3, title = title)
 
@@ -710,12 +716,12 @@ def diagnostic_plots(xret, xd3, solz, satz, lat, lon, time, elem, \
     
    #%%    #%%
 
-def calc_obs(calinfo, beta):
+def calc_obs(calinfo, tict, beta):
 
     c3,cs3,cict3,lict3,c4,cs4,cict4,lict4,c5,cs5,cict5,lict5,nT = calinfo
 
     # first, turn Tinst into normalised Tinst
-    nT = (tinst - 286.125823)/0.049088 
+    # nT = (tinst - 286.125823)/0.049088 
     # placeholder for now -- **** these numbers for MetopA need to be generalised to other sensors  ****
     
     # created lict values
@@ -957,3 +963,5 @@ def piecewise_model(model, auxvar,  vaux, extrapolate = False):
     return fout
 
 #%%
+
+
