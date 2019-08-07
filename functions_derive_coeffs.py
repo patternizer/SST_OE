@@ -145,6 +145,18 @@ def filter_matches(dsG, dsS, minpclr = 0.9,  sstminQL = 4, maxsza = 45.):
     flagS = np.array(dsG['gbcs.flags'][:,cbox,cbox]).astype('int')
     keep = np.logical_and(keep, np.logical_or(flagS == 128, flagS == 256))
 
+    Kcheck_tcwv4 = np.array(dsG['ffm.dbt_dtcwv_4'])[:,0,0]
+    keep = np.logical_and(keep, np.isfinite(Kcheck_tcwv4))
+
+    Kcheck_tcwv5 = np.array(dsG['ffm.dbt_dtcwv_5'])[:,0,0]
+    keep = np.logical_and(keep, np.isfinite(Kcheck_tcwv5))
+
+    Kcheck_sst4 = np.array(dsG['ffm.dbt_dsst_4'])[:,0,0]
+    keep = np.logical_and(keep, np.isfinite(Kcheck_sst4))
+
+    Kcheck_sst5 = np.array(dsG['ffm.dbt_dsst_5'])[:,0,0]
+    keep = np.logical_and(keep, np.isfinite(Kcheck_sst5))
+
     return keep
 
 #%%
