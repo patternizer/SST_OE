@@ -1,6 +1,6 @@
 # SST_OE
 
-Development code for retrieval of SST using optimal estimation (OE).
+Development code for optimal estimation (OE)-driven re-harmonisation of the measurement equations used for retrieval of SST from AVHRR IR channels
 
 ## Contents
 
