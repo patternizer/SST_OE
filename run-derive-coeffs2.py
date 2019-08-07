@@ -17,10 +17,9 @@ import pickle
 import dask
 
 #%%
+
+FLAG_reduce = 0
     
-################
-# MT: 20190729 #
-################
 #FUNCpath = '/Users/chris/Projects/FIDUCEO/ReHarm/'
 FUNCpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
 import sys
@@ -35,19 +34,14 @@ sat = b'MTA'  # same thing but different naming convention!
 
 # Local path names for counts matchup data
 
-################
-# MT: 20190729 #
-################
 #path = '/Users/chris/Projects/FIDUCEO/ReHarm/Data/'
-path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/DATA/'
-dirS = 'source/'
-dirG = 'gbcsout/'
+#path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/DATA/'
+path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
+dirS = 'source/' + 'MTA' + '/' + str(int(2012)) + '/'
+dirG = 'gbcsout/' + 'MTA' + '/' + str(int(2012)) + '/'
 
 # We will loop through all the files and reduce to the matches we want to keep
 
-################
-# MT: 20190729 #
-################
 # pathout = '/Users/chris/Projects/FIDUCEO/ReHarm/DataReduced/'
 pathout = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
 
@@ -59,17 +53,11 @@ except:
 
 # Local path for initial harmonisation coefficients
 
-################
-# MT: 20190729 #
-################
 # Hpath = '/Users/chris/Projects/FIDUCEO/Covariance/HARMONISATION/'
 Hpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/HARMONISATION/v0.3Bet/'
 
 # Setup for Radiance <-> BT directory
 
-################
-# MT: 20190729 #
-################
 # lutdir = '/Users/chris/Projects/FIDUCEO/MMD-Harm/'
 lutdir = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/'
 
@@ -79,8 +67,6 @@ lut = read_in_LUT(sat, lutdir = lutdir)
 #%%
 ########## TYPICALLY CAN SKIP
 # Tests on the various RT modules that I will use
-
-
 
 rad3 = count2rad2(800,1000,870,0.33,0,3,np.array([2.67393749e-03,  2.21853418e-02,  1.15214074e-0]))
 bt3 = rad2bt(rad3,3,lut)
@@ -106,35 +92,28 @@ drad_da2(700.,1000,800,100.,1,4)
 bt5 = rad2bt(100,5,lut)
 dbtdL(bt5,5,lut), 100*(rad2bt(100+0.005,5,lut)-rad2bt(100-0.005,5,lut))
 
-
 #%%
-fn = check_compatible_files(path, dirS, dirG)
 
-# Reduce the data (only need to do this on first pass through the files)
+if FLAG_reduce:
 
-for f in fn:
-    
-    # Read and concatenate a selection of files (defined by fn[selected])
-    dsS = read_files(path, dirS, [f], reduce = True, dimstr = 'matchup_count')
-    dsG = read_files(path, dirG, [f], reduce = True)
+    fn = check_compatible_files(path, dirS, dirG)
+    # Reduce the data (only need to do this on first pass through the files)
+    for f in fn:
+        # Read and concatenate a selection of files (defined by fn[selected])
+        dsS = read_files(path, dirS, [f], reduce = True, dimstr = 'matchup_count')
+        dsG = read_files(path, dirG, [f], reduce = True)
+        # Do checks for clear sky, validity, etc and also that AATSR and AVHRR are collocated
+        keep = filter_matches(dsG, dsS, sstminQL = 5)
+        nm = np.sum(keep)
+        dsG['keep'] = ('record', keep)
+        dsS['keep'] = ('matchup_count', keep)
+        dsGr = dsG.where(dsG.keep, drop = True)
+        dsSr = dsS.where(dsS.keep, drop = True)
+        dsGr.to_netcdf(path = pathout+dirG+f)
+        dsSr.to_netcdf(path = pathout+dirS+f)
 
-    # Do checks for clear sky, validity, etc and also that AATSR and AVHRR are collocated
-    keep = filter_matches(dsG, dsS, sstminQL = 5)
-
-    nm = np.sum(keep)
-
-
-    dsG['keep'] = ('record', keep)
-    dsS['keep'] = ('matchup_count', keep)
-
-    
-    dsGr = dsG.where(dsG.keep, drop = True)
-    dsSr = dsS.where(dsS.keep, drop = True)
-
-
-    dsGr.to_netcdf(path = pathout+dirG+f)
-    dsSr.to_netcdf(path = pathout+dirS+f)
-
+else:
+    print('Data already reduced')
 
 #%%
 ############################################
@@ -341,7 +320,7 @@ ugamma0 = np.full(divsg, 0.2) # which is about 1% of the mean TCWV to start with
 beta1, gamma1, gvals1, gc1, Sbeta1, Sgamma1 = update_beta_gamma3(F0, Fx0, Fw0, Z0, SSe0, SSa0, beta, coef_list, gamma0, w, divsg, 1000000, lut, calinfo, Sbeta*400, ugamma0,  accel = 5, extrapolate = True)
 # *X and accel are just to allow values to change more rapidly -- plots verify that it is still stable
 
-l3r,t3r,tb3r,l4r,t4r,tb4r,l5r,t5r,tb5r,only2chan = calc_obs(calinfo, beta1)
+l3r,t3r,tb3r,l4r,t4r,tb4r,l5r,t5r,tb5r,only2chan = calc_obs(calinfo, tict, beta1)
 
 #%%
 # Some sanity checks
