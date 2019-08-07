@@ -18,7 +18,7 @@ import dask
 
 #%%
 
-FLAG_reduce = 0
+FLAG_reduce = 1
     
 #FUNCpath = '/Users/chris/Projects/FIDUCEO/ReHarm/'
 FUNCpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
