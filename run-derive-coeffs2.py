@@ -39,15 +39,16 @@ sat = b'N19'  # same thing but different naming convention!
 #sat = b'N16'  # same thing but different naming convention!
 #sat = b'N15'  # same thing but different naming convention!
 
-sat2 = current sensor
+sat2 = current_sensor
+year = 2012
 
 # Local path names for counts matchup data
 
 #path = '/Users/chris/Projects/FIDUCEO/ReHarm/Data/'
 #path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/DATA/'
 path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
-dirS = 'source/' + 'MTA' + '/' + str(int(2012)) + '/'
-dirG = 'gbcsout/' + 'MTA' + '/' + str(int(2012)) + '/'
+dirS = 'source/' + 'MTA' + '/' + str(year) + '/'
+dirG = 'gbcsout/' + 'MTA' + '/' + str(year) + '/'
 
 # We will loop through all the files and reduce to the matches we want to keep
 
@@ -175,9 +176,14 @@ beta, ubeta, Sbeta = read_harm_init(Hpath,'m02')
 # Calculate the observation BTs using these calibration coefficients
 
 # first, turn Tinst into normalised Tinst
-nT = (tinst - 286.125823)/0.049088 
-# placeholder for now -- these numbers for MetopA need to be generalised to other sensors
-
+if current_sensor == 'm02':
+    nT = (tinst - 286.125823)/0.049088
+elif current_sensor == 'n19':
+    nT = (tinst - 287.754638)/0.117681
+elif current_sensor == 'n16':
+    nT = (tinst - 292.672201)/3.805704
+elif current_sensor == 'n15':
+    nT = (tinst - 294.758564)/2.804361
 
 # created lict values
 lict3, lict4, lict5 = bt2rad(tict,3,lut), bt2rad(tict,4,lut), bt2rad(tict,5,lut)
@@ -189,11 +195,13 @@ tb3 = dbtdL(t3,3,lut) * drad_da(c3,cs3,cict3,lict3,nT,3)
 
 fig,ax = plt.subplots()
 plt.plot(t3,l3,'.')
+plt.title('t3 vs. l3')
 plt.savefig('t3_l3.png')
 plt.close('all')
 
 fig,ax = plt.subplots()
 plt.plot(l3,tb3[0,:],'.')
+plt.title('l3 vs. tb3')
 plt.savefig('l3_tb3.png')
 plt.close('all')
 
@@ -205,11 +213,13 @@ tb4 = dbtdL(t4,4,lut) * drad_da(c4,cs4,cict4,lict4,nT,4)
 
 fig,ax = plt.subplots()
 plt.plot(t4,l4,'.')
+plt.title('t4 vs. l4')
 plt.savefig('t4_l4.png')
 plt.close('all')
 
 fig,ax = plt.subplots()
 plt.plot(l4,tb4[0,:],'.')
+plt.title('l4 vs. tb4')
 plt.savefig('l4_tb4.png')
 plt.close('all')
 
@@ -219,11 +229,13 @@ tb5 = dbtdL(t5,5,lut) * drad_da(c5,cs5,cict5,lict5,nT,5)
 
 fig,ax = plt.subplots()
 plt.plot(t5,l5,'.')
+plt.title('t5 vs. l5')
 plt.savefig('t5_l5.png')
 plt.close('all')
 
 fig,ax = plt.subplots()
 plt.plot(l5,tb5[0,:],'.')
+plt.title('l5 vs. tb5')
 plt.savefig('l5_tb5.png')
 plt.close('all')
 
@@ -330,7 +342,7 @@ ugamma0 = np.full(divsg, 0.2) # which is about 1% of the mean TCWV to start with
 beta1, gamma1, gvals1, gc1, Sbeta1, Sgamma1 = update_beta_gamma3(F0, Fx0, Fw0, Z0, SSe0, SSa0, beta, coef_list, gamma0, w, divsg, 1000000, lut, calinfo, Sbeta*400, ugamma0,  accel = 5, extrapolate = True)
 # *X and accel are just to allow values to change more rapidly -- plots verify that it is still stable
 
-l3r,t3r,tb3r,l4r,t4r,tb4r,l5r,t5r,tb5r,only2chan = calc_obs(calinfo, tict, beta1)
+l3r,t3r,tb3r,l4r,t4r,tb4r,l5r,t5r,tb5r,only2chan = calc_obs(calinfo, tict, lut, beta1)
 
 #%%
 # Some sanity checks
@@ -372,7 +384,7 @@ t3new = rad2bt(l3new,3,lut)
 
 fig,ax - plt.subplots()
 plt.plot(c3counts,t3new-t3old)
-plt.title('BT change as function of counts')
+plt.title('BT change as function of counts: Ch3')
 plt.savefig('bt-change-with-counts-c3.png')
 plt.close('all')
 
@@ -384,6 +396,7 @@ t4new = rad2bt(l4new,4,lut)
 
 fig,ax - plt.subplots()
 plt.plot(c4counts,t4new-t4old)
+plt.title('BT change as function of counts: Ch4')
 plt.savefig('bt-change-with-counts-c4.png')
 plt.close('all')
 
@@ -395,7 +408,7 @@ t5new = rad2bt(l5new,5,lut)
 
 fig,ax - plt.subplots()
 plt.plot(c5counts,t5new-t5old)
-plt.legend(['Revised minus harmon., Ch3', 'Ch4', 'Ch5'])
+plt.title('BT change as function of counts: Ch5')
 plt.savefig('bt-change-with-counts-c5.png')
 plt.close('all')
 
@@ -404,7 +417,7 @@ plt.title('BT change as function of scene temperature')
 plt.plot(t3new,t3new-t3old)
 plt.plot(t4new,t4new-t4old)
 plt.plot(t5new,t5new-t5old)
-plt.legend(['Revised minus harmon., Ch3', 'Ch4', 'Ch5'])
+plt.legend(['Ch3', 'Ch4', 'Ch5'])
 plt.savefig('bt-change-with-scene-temperature-c345.png')
 plt.close('all')
 
@@ -413,4 +426,5 @@ plt.plot(t4r,gc1,'.')
 plt.title('TCWV correction vs. BT')
 plt.savefig('tcwv-correction-versus-bt.png')
 plt.close('all')
+
 
