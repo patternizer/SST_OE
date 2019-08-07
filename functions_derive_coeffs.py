@@ -729,7 +729,7 @@ def diagnostic_plots(xret, xd3, solz, satz, lat, lon, time, elem, \
     
    #%%    #%%
 
-def calc_obs(calinfo, tict, beta):
+def calc_obs(calinfo, tict, lut, beta):
 
     c3,cs3,cict3,lict3,c4,cs4,cict4,lict4,c5,cs5,cict5,lict5,nT = calinfo
 
@@ -941,6 +941,7 @@ def update_beta_gamma3(F, Fx, Fw, Z, Se, Sa, betai, coef_list, gammai, \
             plt.legend((str(gvals.astype('int'))))
             pltstr = 'plot_from_update_gamma'+tag+'_stratum_'+str(i)+'.png'
             plt.savefig(pltstr)
+            plt.close('all')
        
     if stratg:
         gc = piecewise_model(gammaout, auxg, gvals, extrapolate = extrapolate)
@@ -978,3 +979,19 @@ def piecewise_model(model, auxvar,  vaux, extrapolate = False):
 #%%
 
 
+#def results_to_netcdf(current_sensor,year,beta1,gamma1,gvals1,gc1,Sbeta1,Sgamma1,stats1):
+
+#    file_out = current_sensor + "_" + str(year) + ".nc"
+#    data_out = xarray.Dataset()
+#    data_out["beta1"] = (("beta1",), beta1)
+#    data_out["gamma1"] = (("gamma1",), gamma1)
+#    data_out["gvals1"] = (("gvals1",), gvals)
+#    data_out["gc1"] = (("gc1",), gc1)
+#    data_out["Sbeta1"] = (("Sbeta1",), Sbeta1)
+#    data_out["Sgamma1"] = (("Sgamma1",), Sgamma1)
+#    data_out["stats1"] = (("stats1",), stats1)
+#    data_out.attrs={'Conventions':'CF-1.6', 'title':'Output data', 'summary':'Data generated'}
+#    data_out.to_netcdf(file_out)
+#    data_out.close()
+
+    
