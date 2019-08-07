@@ -48,10 +48,13 @@ def check_compatible_files(path, dirS, dirG):
     """
     
     pathG = path + dirG
-    fG = np.sort(os.listdir(pathG))
+#    fG = np.sort(os.listdir(pathG))
+    fG = np.sort([f for f in os.listdir(pathG) if f.endswith('.nc')])
        
     pathS = path + dirS
-    fS = np.sort(os.listdir(pathS))   
+#    fS = np.sort(os.listdir(pathS))   
+    fS = np.sort([f for f in os.listdir(pathS) if f.endswith('.nc')])
+
    
     n = np.max([fG.size, fS.size])
     
@@ -141,7 +144,6 @@ def filter_matches(dsG, dsS, minpclr = 0.9,  sstminQL = 4, maxsza = 45.):
 
     flagS = np.array(dsG['gbcs.flags'][:,cbox,cbox]).astype('int')
     keep = np.logical_and(keep, np.logical_or(flagS == 128, flagS == 256))
-
 
     return keep
 
