@@ -85,7 +85,7 @@ def check_compatible_files(path, dirS, dirG):
 #%%
 
     
-def read_files(path, dirX, flist, dimstr = 'record', reduce = False):
+def read_files(path, dirX, flist, dimstr = 'record', reduce = False, satcode='ma'):
     
     """
     Reads the netcdf files listed in flist from directory path+dirX
@@ -100,12 +100,12 @@ def read_files(path, dirX, flist, dimstr = 'record', reduce = False):
         if reduce:
             centre_dim = {d:[ds.dims[d]//2 -1,ds.dims[d]//2,ds.dims[d]//2 +1] \
                           for d in ds.dims if (d.endswith('nj') or d.endswith('ni') \
-                                               or d.endswith('ma_nx') or d.endswith('ma_ny')) }
+                                               or d.endswith(satcode+'_nx') or d.endswith(satcode+'_ny')) }
             ds = ds[centre_dim]
         #v=ds.load()
         
         try:
-            ds1a = ds.drop('avhrr-ma_dtime') # this is a work-around, as this variable makes
+            ds1a = ds.drop('avhrr-'+satcode+'_dtime') # this is a work-around, as this variable makes
                         # the concat method fail for reasons I don't understand
             ds1 = ds1a.drop_dims('insitu.ntime') # don't need these
         except:
@@ -119,7 +119,7 @@ def read_files(path, dirX, flist, dimstr = 'record', reduce = False):
 
 #%%
    
-def filter_matches(dsG, dsS, minpclr = 0.9,  sstminQL = 4, maxsza = 45.):
+def filter_matches(dsG, dsS, minpclr = 0.9,  sstminQL = 4, maxsza = 45., satcode='ma'):
     
     """
     returns a boolean
@@ -139,7 +139,7 @@ def filter_matches(dsG, dsS, minpclr = 0.9,  sstminQL = 4, maxsza = 45.):
     QL = np.array(dsG['gbcs.quality']).astype('int')[:,cbox,cbox]
     keep = np.logical_and(keep, QL >= sstminQL)
     
-    szain = np.array(dsS['avhrr-ma_satellite_zenith_angle'][:,cbox,cbox])
+    szain = np.array(dsS['avhrr-'+satcode+'_satellite_zenith_angle'][:,cbox,cbox])
     keep = np.logical_and(keep, szain < maxsza)
 
     flagS = np.array(dsG['gbcs.flags'][:,cbox,cbox]).astype('int')
@@ -162,7 +162,7 @@ def filter_matches(dsG, dsS, minpclr = 0.9,  sstminQL = 4, maxsza = 45.):
 #%%
 
     
-def extract_vars(dsG, dsS):
+def extract_vars(dsG, dsS, satcode='ma'):
     
     data = []
     cbox = np.size(dsG['gbcs.flags'][0,:,0])//2
@@ -177,40 +177,39 @@ def extract_vars(dsG, dsS):
              'nwp.sst']
     for v in mvars: data.append(np.array(dsG[v][:,0,0]))    
     
-    bvars = ['avhrr-ma_ch1', 'avhrr-ma_ch2', \
-             'avhrr-ma_ch3a', 'avhrr-ma_ch3b', \
-             'avhrr-ma_ch4', 'avhrr-ma_ch5',\
-             'avhrr-ma_ch1_earth_counts', 'avhrr-ma_ch2_earth_counts', \
-             'avhrr-ma_ch3a_earth_counts', 'avhrr-ma_ch3b_earth_counts', \
-             'avhrr-ma_ch4_earth_counts', 'avhrr-ma_ch5_earth_counts',\
-             'avhrr-ma_ch3b_bbody_counts', \
-             'avhrr-ma_ch4_bbody_counts', 'avhrr-ma_ch5_bbody_counts',\
-             'avhrr-ma_ch3b_space_counts', \
-             'avhrr-ma_ch4_space_counts', 'avhrr-ma_ch5_space_counts',\
-             'avhrr-ma_ict_temp', 'avhrr-ma_orbital_temperature',\
-             'avhrr-ma_orbital_temperature_nlines',\
-             'avhrr-ma_prt_1', 'avhrr-ma_prt_2', 'avhrr-ma_prt_3', 'avhrr-ma_prt_4', \
-             'avhrr-ma_solar_zenith_angle', 'avhrr-ma_satellite_zenith_angle',\
-             'avhrr-ma_lat', 'avhrr-ma_lon']
+    bvars = ['avhrr-'+satcode+'_ch1', 'avhrr-'+satcode+'_ch2', \
+             'avhrr-'+satcode+'_ch3a', 'avhrr-'+satcode+'_ch3b', \
+             'avhrr-'+satcode+'_ch4', 'avhrr-'+satcode+'_ch5',\
+             'avhrr-'+satcode+'_ch1_earth_counts', 'avhrr-'+satcode+'_ch2_earth_counts', \
+             'avhrr-'+satcode+'_ch3a_earth_counts', 'avhrr-'+satcode+'_ch3b_earth_counts', \
+             'avhrr-'+satcode+'_ch4_earth_counts', 'avhrr-'+satcode+'_ch5_earth_counts',\
+             'avhrr-'+satcode+'_ch3b_bbody_counts', \
+             'avhrr-'+satcode+'_ch4_bbody_counts', 'avhrr-'+satcode+'_ch5_bbody_counts',\
+             'avhrr-'+satcode+'_ch3b_space_counts', \
+             'avhrr-'+satcode+'_ch4_space_counts', 'avhrr-'+satcode+'_ch5_space_counts',\
+             'avhrr-'+satcode+'_ict_temp', 'avhrr-'+satcode+'_orbital_temperature',\
+             'avhrr-'+satcode+'_orbital_temperature_nlines',\
+             'avhrr-'+satcode+'_prt_1', 'avhrr-'+satcode+'_prt_2', 'avhrr-'+satcode+'_prt_3', 'avhrr-'+satcode+'_prt_4', \
+             'avhrr-'+satcode+'_solar_zenith_angle', 'avhrr-'+satcode+'_satellite_zenith_angle',\
+             'avhrr-'+satcode+'_lat', 'avhrr-'+satcode+'_lon']
     for v in bvars: data.append(np.array(dsS[v][:,cbox,cbox])) 
-    
-    
-    dum = np.array(dsS['avhrr-ma_acquisition_time'][0:-1,cbox,cbox])
-    dum = np.append(dum, np.array(dsS['avhrr-ma_acquisition_time'][-1,cbox,cbox]) )
+        
+    dum = np.array(dsS['avhrr-'+satcode+'_acquisition_time'][0:-1,cbox,cbox])
+    dum = np.append(dum, np.array(dsS['avhrr-'+satcode+'_acquisition_time'][-1,cbox,cbox]) )
     # This is a cludge because of dask madness
     data.append(dum)
     
     
-    bvars = ['avhrr-ma_x', 'avhrr-ma_y']
+    bvars = ['avhrr-'+satcode+'_x', 'avhrr-'+satcode+'_y']
     for v in bvars: data.append(np.array(dsS[v][:]))     
     
-    bvars = [ 'avhrr-ma_nwp_total_column_water_vapour']   
+    bvars = [ 'avhrr-'+satcode+'_nwp_total_column_water_vapour']   
     for v in bvars: data.append(np.array(dsS[v][:,0,0])) 
 
-    wind = np.sqrt(np.array( ( (dsS['avhrr-ma_nwp_10m_east_wind_component'][:,0,0])**2 + \
-             (dsS['avhrr-ma_nwp_10m_north_wind_component'][:,0,0])**2  )))
+    wind = np.sqrt(np.array( ( (dsS['avhrr-'+satcode+'_nwp_10m_east_wind_component'][:,0,0])**2 + \
+             (dsS['avhrr-'+satcode+'_nwp_10m_north_wind_component'][:,0,0])**2  )))
     
-    sec = 1./np.cos(np.deg2rad(np.array(dsS['avhrr-ma_satellite_zenith_angle'][:,cbox,cbox])))
+    sec = 1./np.cos(np.deg2rad(np.array(dsS['avhrr-'+satcode+'_satellite_zenith_angle'][:,cbox,cbox])))
 
     data.append(wind[:])
     data.append(sec[:])
