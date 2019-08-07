@@ -29,8 +29,17 @@ from functions_derive_coeffs import *
 
 # ALL THE things to change if running for a different case / setup
     
-current_sensor = 'm02' # The code for the AVHRR being looked at
-sat = b'MTA'  # same thing but different naming convention!
+#current_sensor = 'm02' # The code for the AVHRR being looked at
+current_sensor = 'n19' # The code for the AVHRR being looked at
+#current_sensor = 'n16' # The code for the AVHRR being looked at
+#current_sensor = 'n15' # The code for the AVHRR being looked at
+
+#sat = b'MTA'  # same thing but different naming convention!
+sat = b'N19'  # same thing but different naming convention!
+#sat = b'N16'  # same thing but different naming convention!
+#sat = b'N15'  # same thing but different naming convention!
+
+sat2 = current sensor
 
 # Local path names for counts matchup data
 
@@ -99,11 +108,12 @@ if FLAG_reduce:
     fn = check_compatible_files(path, dirS, dirG)
     # Reduce the data (only need to do this on first pass through the files)
     for f in fn:
+        print(f)
         # Read and concatenate a selection of files (defined by fn[selected])
-        dsS = read_files(path, dirS, [f], reduce = True, dimstr = 'matchup_count')
-        dsG = read_files(path, dirG, [f], reduce = True)
+        dsS = read_files(path, dirS, [f], reduce = True, dimstr = 'matchup_count', satcode=sat2)
+        dsG = read_files(path, dirG, [f], reduce = True, satcode=sat2)
         # Do checks for clear sky, validity, etc and also that AATSR and AVHRR are collocated
-        keep = filter_matches(dsG, dsS, sstminQL = 5)
+        keep = filter_matches(dsG, dsS, sstminQL = 5, satcode=sat2)
         nm = np.sum(keep)
         dsG['keep'] = ('record', keep)
         dsS['keep'] = ('matchup_count', keep)
