@@ -29,13 +29,13 @@ from functions_derive_coeffs import *
 
 # ALL THE things to change if running for a different case / setup
     
-#current_sensor = 'm02' # The code for the AVHRR being looked at
-current_sensor = 'n19' # The code for the AVHRR being looked at
+current_sensor = 'ma' # The code for the AVHRR being looked at
+#current_sensor = 'n19' # The code for the AVHRR being looked at
 #current_sensor = 'n16' # The code for the AVHRR being looked at
 #current_sensor = 'n15' # The code for the AVHRR being looked at
 
-#sat = b'MTA'  # same thing but different naming convention!
-sat = b'N19'  # same thing but different naming convention!
+sat = b'MTA'  # same thing but different naming convention!
+#sat = b'N19'  # same thing but different naming convention!
 #sat = b'N16'  # same thing but different naming convention!
 #sat = b'N15'  # same thing but different naming convention!
 
