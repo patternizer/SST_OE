@@ -176,7 +176,7 @@ beta, ubeta, Sbeta = read_harm_init(Hpath,'m02')
 # Calculate the observation BTs using these calibration coefficients
 
 # first, turn Tinst into normalised Tinst
-if current_sensor == 'm02':
+if current_sensor == 'ma':
     nT = (tinst - 286.125823)/0.049088
 elif current_sensor == 'n19':
     nT = (tinst - 287.754638)/0.117681
