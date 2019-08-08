@@ -222,7 +222,7 @@ def extract_vars(dsG, dsS, satcode='ma'):
 #%%
     
 def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
-    y1, y2, y3a, y3, y4, y5, solz, satz, lat, lon, time, elem, line, w):
+    y1, y2, y3a, y3, y4, y5, solz, satz, lat, lon, time, elem, line, w, runtag):
     
     fig = plt.figure(figsize=(12,8))
     ax1 = fig.add_subplot(2, 2, 1)    
@@ -237,7 +237,7 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     ax4 = fig.add_subplot(2, 2, 4)    
     plt.hist(w)
     plt.title('TCWV')
-    plt.savefig('tcwv.png')
+    plt.savefig(runtag+'tcwv.png')
     plt.close('all')
     
     # Locations
@@ -263,7 +263,7 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     ax3.plot(lon, lat, ',')
     plt.title('locations')
     fig.tight_layout()
-    plt.savefig('locations.png')
+    plt.savefig(runtag+'locations.png')
     plt.close('all')
 
     fig = plt.figure(figsize=(12,8))
@@ -279,7 +279,7 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     ax4 = fig.add_subplot(2, 2, 4)    
     plt.plot(elem, y3-f3,'.')
     plt.title('Y3-F3 vs elem')
-    plt.savefig('y3-f3-vs-elem.png') 
+    plt.savefig(runtag+'y3-f3-vs-elem.png') 
  
     fig = plt.figure(figsize=(12,8))
     ax1 = fig.add_subplot(2, 2, 1)    
@@ -294,7 +294,7 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     ax4 = fig.add_subplot(2, 2, 4)    
     plt.plot(elem, y4-f4,'.')
     plt.title('Y4-F4 vs elem')
-    plt.savefig('y4-f4-vs-elem.png') 
+    plt.savefig(runtag+'y4-f4-vs-elem.png') 
     plt.close('all')
 
     fig = plt.figure(figsize=(12,8))
@@ -310,7 +310,7 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     ax4 = fig.add_subplot(2, 2, 4)    
     plt.plot(elem, y5-f5,'.')
     plt.title('Y5-F5 vs elem')
-    plt.savefig('y5-f5-vs-elem.png') 
+    plt.savefig(runtag+'y5-f5-vs-elem.png') 
     plt.close('all')
 
     fig = plt.figure(figsize=(12,8))
@@ -326,7 +326,7 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     ax4 = fig.add_subplot(2, 2, 4)    
     plt.scatter(w, fw5/w,c=x,s=1.5)
     plt.title('dF5dw vs TCWV by SST')
-    plt.savefig('df5dw-vs-tcwv-by-sst.png') 
+    plt.savefig(runtag+'df5dw-vs-tcwv-by-sst.png') 
     plt.close('all')
 
     return
@@ -683,7 +683,7 @@ def run_summary_stats(var, title, stratvar, divs, stitle):
 
 
 def diagnostic_plots(xret, xd3, solz, satz, lat, lon, time, elem, \
-                     w, U, sens, title = 'AVHRR - Buoy', use_mean = False):
+                     w, U, sens, title = 'AVHRR - Buoy', use_mean = False, runtag):
     
     if use_mean == True:
         ind = 1
@@ -697,8 +697,8 @@ def diagnostic_plots(xret, xd3, solz, satz, lat, lon, time, elem, \
     invars.append([xret-xd3, title, satz, 10, 'Sat Zen',w,'TCWV'])
     invars.append([xret-xd3, title, lat, 10, 'Latitude',solz,'Sol ZA'])
     invars.append([xret-xd3, title, elem, 10, 'Element',w,'TCWV'])
-    invars.append([xret-xd3, title, w, 10, 'TCWV',satz,'Sat Zen'])
-    invars.append([xret-xd3, title, U, 10, 'Wind',lat,'Latit'])
+    invars.append([xret-xd3, title, w, 10, 'TCWV',satz,'Sat ZA'])
+    invars.append([xret-xd3, title, U, 10, 'Wind',lat,'Lat'])
     invars.append([xret-xd3, title, xd3, 10, 'SST',w,'TCWV'])
     invars.append([xret-xd3, title, solz, 10, 'Sol ZA',sens,'Sens.'])
 
@@ -715,7 +715,7 @@ def diagnostic_plots(xret, xd3, solz, satz, lat, lon, time, elem, \
         plt.plot(j[5,:],j[ind,:],color='red')
         plt.plot(j[5,:],j[ind,:]+j[ind+1,:],'-.',color='red')
         plt.plot(j[5,:],j[ind,:]-j[ind+1,:],'-.',color='red')
-        pltstr = str(k) + '.png'
+        pltstr = runtag+str(k)+'.png'
         plt.savefig(pltstr)
         plt.close('all')
  
@@ -724,7 +724,7 @@ def diagnostic_plots(xret, xd3, solz, satz, lat, lon, time, elem, \
     fig,ax = plt.subplots()
     plt.hist((xret-xd3)*100)
     plt.title(title+', cK')  
-    plt.savefig('cK.png')
+    plt.savefig(runtag+'cK.png')
     plt.close('all')
     
     summary_stats(sens, title = 'Sensitivity')
@@ -769,7 +769,7 @@ def update_beta_gamma3(F, Fx, Fw, Z, Se, Sa, betai, coef_list, gammai, \
                       auxg, divsg, ni, lut, calinfo, betaSi, \
                       ugammai,  accel = 1, \
                       verbose = True, makeplot = True, tag = '', \
-                      extrapolate = False):
+                      extrapolate = False, runtag):
     
     """
     * the beta (calibration coefficient) estimation has no subdivisions since coefficients
@@ -933,7 +933,7 @@ def update_beta_gamma3(F, Fx, Fw, Z, Se, Sa, betai, coef_list, gammai, \
             fig,ax = plt.subplots()
             plt.plot(np.asarray(iZr[nz+i,:]).flatten())
             plt.title('Coefficient'+str(i))            
-            pltstr = 'Coefficient'+'_'+str(i)+'.png'  
+            pltstr = runtag+'Coefficient'+'_'+str(i)+'.png'  
             plt.savefig(pltstr)
             plt.close('all')
 
@@ -942,8 +942,9 @@ def update_beta_gamma3(F, Fx, Fw, Z, Se, Sa, betai, coef_list, gammai, \
             plt.plot(np.asarray(iZr[-ng,bini[:]==i]).flatten())
             # plt.ylim((-0.5,0.5))
             plt.title('Gamma Correction Convergence')
-            plt.legend((str(gvals.astype('int'))))
-            pltstr = 'plot_from_update_gamma'+tag+'_stratum_'+str(i)+'.png'
+            # plt.legend((str(gvals.astype('int'))))
+            # pltstr = 'plot_from_update_gamma'+tag+'_stratum_'+str(i)+'.png'
+            pltstr = runtag+'plot_from_update_gamma_stratum_'+str(i)+'.png'
             plt.savefig(pltstr)
             plt.close('all')
        
@@ -983,9 +984,9 @@ def piecewise_model(model, auxvar,  vaux, extrapolate = False):
 #%%
 
 
-def results_to_netcdf(current_sensor,year,beta1,gamma1,gvals1,gc1,Sbeta1,Sgamma1,stats1):
+def results_to_netcdf(beta1,gamma1,gvals1,gc1,Sbeta1,Sgamma1,stats1,runtag):
 
-    file_out = current_sensor + "_" + str(year) + ".npy"
+    file_out = runtag + 'summary.npy'
     df = {}
     df['beta1'] = beta1
     df['gamma1'] = gamma1
