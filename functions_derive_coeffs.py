@@ -682,8 +682,8 @@ def run_summary_stats(var, title, stratvar, divs, stitle):
 #%%^
 
 
-def diagnostic_plots(xret, xd3, solz, satz, lat, lon, time, elem, \
-                     w, U, sens, title = 'AVHRR - Buoy', use_mean = False, runtag):
+def diagnostic_plots(runtag, xret, xd3, solz, satz, lat, lon, time, elem, \
+                     w, U, sens, title = 'AVHRR - Buoy', use_mean = False):
     
     if use_mean == True:
         ind = 1
@@ -765,11 +765,11 @@ def calc_obs(calinfo, tict, lut, beta):
 #%%  
 
    
-def update_beta_gamma3(F, Fx, Fw, Z, Se, Sa, betai, coef_list, gammai, \
+def update_beta_gamma3(runtag, F, Fx, Fw, Z, Se, Sa, betai, coef_list, gammai, \
                       auxg, divsg, ni, lut, calinfo, betaSi, \
                       ugammai,  accel = 1, \
                       verbose = True, makeplot = True, tag = '', \
-                      extrapolate = False, runtag):
+                      extrapolate = False):
     
     """
     * the beta (calibration coefficient) estimation has no subdivisions since coefficients
