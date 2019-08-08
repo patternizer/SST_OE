@@ -18,7 +18,7 @@ import dask
 
 #%%
 
-FLAG_reduce = 1
+FLAG_reduce = 0
     
 #FUNCpath = '/Users/chris/Projects/FIDUCEO/ReHarm/'
 FUNCpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
@@ -41,6 +41,7 @@ sat = b'MTA'  # same thing but different naming convention!
 
 sat2 = current_sensor
 year = 2012
+runtag = sat2+'_'+str(year)+'_'
 
 # Local path names for counts matchup data
 
@@ -165,7 +166,7 @@ mflag, mpclr, \
 #%%
    
 # Some plots just to see how the data are distributed
-run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, y1, y2, y3a, y3, y4, y5, solz, satz, lat, lon, time, elem, line, w)
+run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, y1, y2, y3a, y3, y4, y5, solz, satz, lat, lon, time, elem, line, w, runtag)
 
 #%%
 
@@ -196,13 +197,13 @@ tb3 = dbtdL(t3,3,lut) * drad_da(c3,cs3,cict3,lict3,nT,3)
 fig,ax = plt.subplots()
 plt.plot(t3,l3,'.')
 plt.title('t3 vs. l3')
-plt.savefig('t3_l3.png')
+plt.savefig(runtag+'t3_l3.png')
 plt.close('all')
 
 fig,ax = plt.subplots()
 plt.plot(l3,tb3[0,:],'.')
 plt.title('l3 vs. tb3')
-plt.savefig('l3_tb3.png')
+plt.savefig(runtag+'l3_tb3.png')
 plt.close('all')
 
 only2chan = np.where(t3 == np.nan) # flag for when only 11 and 12 are present
@@ -214,13 +215,13 @@ tb4 = dbtdL(t4,4,lut) * drad_da(c4,cs4,cict4,lict4,nT,4)
 fig,ax = plt.subplots()
 plt.plot(t4,l4,'.')
 plt.title('t4 vs. l4')
-plt.savefig('t4_l4.png')
+plt.savefig(runtag+'t4_l4.png')
 plt.close('all')
 
 fig,ax = plt.subplots()
 plt.plot(l4,tb4[0,:],'.')
 plt.title('l4 vs. tb4')
-plt.savefig('l4_tb4.png')
+plt.savefig(runtag+'l4_tb4.png')
 plt.close('all')
 
 l5 = count2rad2(c5,cs5,cict5,lict5,nT,5,beta[8:])
@@ -230,13 +231,13 @@ tb5 = dbtdL(t5,5,lut) * drad_da(c5,cs5,cict5,lict5,nT,5)
 fig,ax = plt.subplots()
 plt.plot(t5,l5,'.')
 plt.title('t5 vs. l5')
-plt.savefig('t5_l5.png')
+plt.savefig(runtag+'t5_l5.png')
 plt.close('all')
 
 fig,ax = plt.subplots()
 plt.plot(l5,tb5[0,:],'.')
 plt.title('l5 vs. tb5')
-plt.savefig('l5_tb5.png')
+plt.savefig(runtag+'l5_tb5.png')
 plt.close('all')
 
 #%%
@@ -280,7 +281,7 @@ ux0 = np.sqrt(np.array(Sr[0,0] ).squeeze())
 
 # Printout stats and plots
 print('---------- STATS and PLOTS no bias correction using GBCS cal & initial covariances ------------')
-stats0 = diagnostic_plots(xoe0, xt, solz, satz, lat, lon, time, elem, w, U, sens0)
+stats0 = diagnostic_plots(xoe0, xt, solz, satz, lat, lon, time, elem, w, U, sens0, runtag)
 
 
 #%%
@@ -302,7 +303,7 @@ ux0 = np.sqrt(np.array(Sr[0,0] ).squeeze())
 
 # Printout stats and plots
 print('---------- STATS and PLOTS no bias correction using GBCS cal & initial covariances ------------')
-stats0 = diagnostic_plots(xoe0, xt, solz, satz, lat, lon, time, elem, w, U, sens0)
+stats0 = diagnostic_plots(xoe0, xt, solz, satz, lat, lon, time, elem, w, U, sens0, runtag)
 
 #%%
 
@@ -314,7 +315,7 @@ ux0 = np.sqrt(np.array(Sr[0,0] ).squeeze())
 
 # Printout stats and plots
 print('---------- STATS and PLOTS no bias correction using GBCS cal & initial covariances ------------')
-stats0 = diagnostic_plots(xoe0, xt, solz, satz, lat, lon, time, elem, w, U, sens0)
+stats0 = diagnostic_plots(xoe0, xt, solz, satz, lat, lon, time, elem, w, U, sens0, runtag)
 
 #%%
 
@@ -339,7 +340,7 @@ calinfo = [c3,cs3,cict3,lict3,c4,cs4,cict4,lict4,c5,cs5,cict5,lict5,nT]
 gamma0 = np.zeros(divsg)
 ugamma0 = np.full(divsg, 0.2) # which is about 1% of the mean TCWV to start with
 
-beta1, gamma1, gvals1, gc1, Sbeta1, Sgamma1 = update_beta_gamma3(F0, Fx0, Fw0, Z0, SSe0, SSa0, beta, coef_list, gamma0, w, divsg, 1000000, lut, calinfo, Sbeta*400, ugamma0,  accel = 5, extrapolate = True)
+beta1, gamma1, gvals1, gc1, Sbeta1, Sgamma1 = update_beta_gamma3(F0, Fx0, Fw0, Z0, SSe0, SSa0, beta, coef_list, gamma0, w, divsg, 1000000, lut, calinfo, Sbeta*400, ugamma0,  accel = 5, extrapolate = True, runtag)
 # *X and accel are just to allow values to change more rapidly -- plots verify that it is still stable
 
 l3r,t3r,tb3r,l4r,t4r,tb4r,l5r,t5r,tb5r,only2chan = calc_obs(calinfo, tict, lut, beta1)
@@ -370,7 +371,7 @@ ux1 = np.sqrt(np.array(Sr[0,0] ).squeeze())
 
 # Printout stats and plots
 print('---------- STATS and PLOTS orrection using GBCS cal & initial covariances ------------')
-stats1 = diagnostic_plots(xoe1, xt, solz, satz, lat, lon, time, elem, w, U, sens1)
+stats1 = diagnostic_plots(xoe1, xt, solz, satz, lat, lon, time, elem, w, U, sens1, runtag)
 
 #%%
 
@@ -382,23 +383,11 @@ t3old = rad2bt(l3old,3,lut)
 l3new = count2rad(c3counts,np.nanmean(cs3),np.nanmean(cict3),np.nanmean(lict3),0,3,beta1[0:4])
 t3new = rad2bt(l3new,3,lut)
 
-fig,ax = plt.subplots()
-plt.plot(c3counts,t3new-t3old)
-plt.title('BT change as function of counts: Ch3')
-plt.savefig('bt-change-with-counts-c3.png')
-plt.close('all')
-
 c4counts = [i for i in range(400, 860, 10)]
 l4old = count2rad(c4counts,np.nanmean(cs4),np.nanmean(cict4),np.nanmean(lict4),0,4,beta[4:8])
 t4old = rad2bt(l4old,4,lut)
 l4new = count2rad(c4counts,np.nanmean(cs4),np.nanmean(cict4),np.nanmean(lict4),0,4,beta1[4:8])
 t4new = rad2bt(l4new,4,lut)
-
-fig,ax = plt.subplots()
-plt.plot(c4counts,t4new-t4old)
-plt.title('BT change as function of counts: Ch4')
-plt.savefig('bt-change-with-counts-c4.png')
-plt.close('all')
 
 c5counts = [i for i in range(380, 840, 10)]
 l5old = count2rad(c5counts,np.nanmean(cs5),np.nanmean(cict5),np.nanmean(lict5),0,5,beta[8:])
@@ -407,9 +396,12 @@ l5new = count2rad(c5counts,np.nanmean(cs5),np.nanmean(cict5),np.nanmean(lict5),0
 t5new = rad2bt(l5new,5,lut)
 
 fig,ax = plt.subplots()
+plt.title('BT change as function of counts')
+plt.plot(c3counts,t3new-t3old)
+plt.plot(c4counts,t4new-t4old)
 plt.plot(c5counts,t5new-t5old)
-plt.title('BT change as function of counts: Ch5')
-plt.savefig('bt-change-with-counts-c5.png')
+plt.legend(['Ch3', 'Ch4', 'Ch5'])
+plt.savefig(runtag+'bt-change-with-counts-c345.png')
 plt.close('all')
 
 fig,ax = plt.subplots()
@@ -418,15 +410,16 @@ plt.plot(t3new,t3new-t3old)
 plt.plot(t4new,t4new-t4old)
 plt.plot(t5new,t5new-t5old)
 plt.legend(['Ch3', 'Ch4', 'Ch5'])
-plt.savefig('bt-change-with-scene-temperature-c345.png')
+plt.savefig(runtag+'bt-change-with-scene-temperature-c345.png')
 plt.close('all')
 
 fig,ax = plt.subplots()
 plt.plot(t4r,gc1,'.')
 plt.title('TCWV correction vs. BT')
-plt.savefig('tcwv-correction-versus-bt.png')
+plt.savefig(runtag+'tcwv-correction-versus-bt.png')
 plt.close('all')
 
-results_to_netcdf(current_sensor,year,beta1,gamma1,gvals1,gc1,Sbeta1,Sgamma1,stats1)
+results_to_netcdf(beta1,gamma1,gvals1,gc1,Sbeta1,Sgamma1,stats1,runtag)
 
 print('** END')
+
