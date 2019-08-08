@@ -48,11 +48,9 @@ def check_compatible_files(path, dirS, dirG):
     """
     
     pathG = path + dirG
-#    fG = np.sort(os.listdir(pathG))
     fG = np.sort([f for f in os.listdir(pathG) if f.endswith('.nc')])
        
     pathS = path + dirS
-#    fS = np.sort(os.listdir(pathS))   
     fS = np.sort([f for f in os.listdir(pathS) if f.endswith('.nc')])
 
    
@@ -85,7 +83,7 @@ def check_compatible_files(path, dirS, dirG):
 #%%
 
     
-def read_files(path, dirX, flist, dimstr = 'record', reduce = False, satcode='ma'):
+def read_files(path, dirX, flist, dimstr = 'record', reduce = False, satcode = 'ma'):
     
     """
     Reads the netcdf files listed in flist from directory path+dirX
@@ -119,7 +117,7 @@ def read_files(path, dirX, flist, dimstr = 'record', reduce = False, satcode='ma
 
 #%%
    
-def filter_matches(dsG, dsS, minpclr = 0.9,  sstminQL = 4, maxsza = 45., satcode='ma'):
+def filter_matches(dsG, dsS, minpclr = 0.9,  sstminQL = 4, maxsza = 45., satcode = 'ma'):
     
     """
     returns a boolean
@@ -131,6 +129,7 @@ def filter_matches(dsG, dsS, minpclr = 0.9,  sstminQL = 4, maxsza = 45., satcode
     keep = [True for i in range(nm)]
     
     pclr = np.array(dsG['gbcs.p_clear.max'].min(dim=('ni','nj')))
+    pclr[np.isnan(pclr)] = 0
     keep = np.logical_and(keep, pclr > minpclr)
 
     QCin = np.array(dsS['drifter-sst_insitu.qc1']).astype('int').squeeze()
@@ -162,7 +161,7 @@ def filter_matches(dsG, dsS, minpclr = 0.9,  sstminQL = 4, maxsza = 45., satcode
 #%%
 
     
-def extract_vars(dsG, dsS, satcode='ma'):
+def extract_vars(dsG, dsS, satcode = 'ma'):
     
     data = []
     cbox = np.size(dsG['gbcs.flags'][0,:,0])//2
@@ -437,8 +436,6 @@ def count2rad2(Ce,Cs,Cict,Lict,Tinst,channel,coef):
 
 def read_in_LUT(avhrr_sat, lutdir = './'):
     LUT = {}
-#    all_lut_radiance_dict = np.load(lutdir+'lut_radiance.npy', encoding='bytes').item()
-#    all_lut_BT_dict = np.load(lutdir+'lut_BT.npy', encoding='bytes').item()
     all_lut_radiance_dict = np.load(lutdir+'lut_radiance.npy', encoding='bytes', allow_pickle=True).item()
     all_lut_BT_dict = np.load(lutdir+'lut_BT.npy', encoding='bytes', allow_pickle=True).item()
     try:
@@ -451,13 +448,15 @@ def read_in_LUT(avhrr_sat, lutdir = './'):
     return LUT
 
 def rad2bt(L,channel,lut):
-    BT = np.interp(L,lut['L'][:,channel],lut['BT'][:,channel],left=-999.9,right=-999.9)
+#    BT = np.interp(L,lut['L'][:,channel],lut['BT'][:,channel],left=-999.9,right=-999.9)
+    BT = np.interp(L,lut['L'][:,channel],lut['BT'][:,channel],left=np.nan,right=np.nan)
     return BT
 
 
 
 def bt2rad(BT,channel,lut):
-    L = np.interp(BT,lut['BT'][:,channel],lut['L'][:,channel],left=-999.9,right=-999.9)
+#    L = np.interp(BT,lut['BT'][:,channel],lut['L'][:,channel],left=-999.9,right=-999.9)
+    L = np.interp(BT,lut['BT'][:,channel],lut['L'][:,channel],left=np.nan,right=np.nan)
     return L
 
 
@@ -491,25 +490,55 @@ def dbtdL(T,channel,lut):
 
 #%%
     
+#def make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, xret, y3, y4, y5, w, adj_for_x = True, fix_ch3_nan = False):
 def make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
-    xret, y3, y4, y5, w, adj_for_x = True, fix_ch3_nan = False):
-    
+    xret, y3, y4, y5, w, solz, adj_for_x = True, fix_ch3_nan = True, exc_ch3_day = True, drop_day = False):
+
+    cf3, cf4, cf5, cfx3, cfx4, cfx5, cfw3, cfw4, cfw5, cx, \
+    cxret, cy3, cy4, cy5, cw, csolz = np.copy([f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
+    xret, y3, y4, y5, w, solz]) 
+
+    if drop_day:
+        keep = (solz > 90.)
+        cf3, cf4, cf5, cfx3, cfx4, cfx5, cfw3, cfw4, cfw5, cx, \
+                  cxret, cy3, cy4, cy5, cw, csolz = [f[keep] for f in 
+                  [cf3, cf4, cf5, cfx3, cfx4, cfx5, cfw3, cfw4, cfw5, cx, \
+                  cxret, cy3, cy4, cy5, cw, csolz]]
+
     if fix_ch3_nan:
-        isnan = np.isnan(y3)
-        y3[isnan] = 290 # purely nominal typical value, not to be used in retrieval
-        fx3[isnan] = 0.0 # giving no sensitivity to this channel
-        fw3[isnan] = 0.0
-    
-    Y  = np.asmatrix((y3, y4, y5))
-    F  = np.asmatrix((f3, f4, f5))
-    Fx = np.asmatrix((fx3, fx4, fx5))
-    Fw = np.asmatrix((fw3/w, fw4/w, fw5/w)) # converting dY/(dw/w) into dYdw
-    Za = np.asmatrix((x, w))   
+        # isnan = np.isnan(y3)
+        # y3[isnan] = 290 # purely nominal typical value, not to be used in retrieval
+        # fx3[isnan] = 0.0 # giving no sensitivity to this channel
+        # fw3[isnan] = 0.0
+        isnan = np.isnan(cy3)
+        cfx3[isnan] = 0.0 # giving no sensitivity to this channel
+        cfw3[isnan] = 0.0
+
+    if exc_ch3_day:
+        isexc = (csolz < 90.)
+        cy3[isexc] = np.nan # purely nominal typical value, not to be used in retrieval
+        cfx3[isexc] = 0.0 # giving no sensitivity to this channel
+        cfw3[isexc] = 0.0
+            
+    # Y  = np.asmatrix((y3, y4, y5))
+    # F  = np.asmatrix((f3, f4, f5))
+    # Fx = np.asmatrix((fx3, fx4, fx5))
+    # Fw = np.asmatrix((fw3/w, fw4/w, fw5/w)) # converting dY/(dw/w) into dYdw
+    # Za = np.asmatrix((x, w))   
+
+    Y  = np.asmatrix((cy3, cy4, cy5))
+    F  = np.asmatrix((cf3, cf4, cf5))
+    Fx = np.asmatrix((cfx3, cfx4, cfx5))
+    Fw = np.asmatrix((cfw3/cw, cfw4/cw, cfw5/cw)) # converting dY/(dw/w) into dYdw
+    Za = np.asmatrix((cx, cw))      
     
     if adj_for_x: 
-        for i in range(np.size(x)):
-            F[:,i] += (xret - x)[i]*Fx[:,i]
-        Za[0,:] = xret
+        # for i in range(np.size(x)):
+        #    F[:,i] += (xret - x)[i]*Fx[:,i]
+        # Za[0,:] = xret
+        for i in range(np.size(cx)):
+            F[:,i] += (cxret - cx)[i]*Fx[:,i]
+        Za[0,:] = cxret
     
     K = []
     for i in range(np.shape(Y)[1]):
@@ -563,17 +592,22 @@ def optimal_estimates(Z, K, Sa, Se, Y, F, usechan = -1):
     if usechan == -1 : usechan = [True, True, True]
     
     for i in range(nm):   
+        
+        # YY = Y[usechan,i]    
+        cy = np.array(np.copy(Y[:,i])).squeeze()
+        lusechan = np.logical_and(usechan, np.isfinite(cy))        
+        YY = Y[lusechan,i]    
 
-        YY = Y[usechan,i]    
-
-        SSe = np.asmatrix(Se[:,:,i])[usechan,:][:,usechan]
+        # SSe = np.asmatrix(Se[:,:,i])[usechan,:][:,usechan]
+        SSe = np.asmatrix(Se[:,:,i])[lusechan,:][:,lusechan]
         SSa = np.asmatrix(Sa[:,:,i])
             
         ZZa = Z[:,i]    
-        FF = F[usechan,i]    
-        KK = K[i][usechan,:] # K passed in must be a list of matrices
-        
-        
+        # FF = F[usechan,i]    
+        # KK = K[i][usechan,:] # K passed in must be a list of matrices
+        FF = F[lusechan,i]    
+        KK = K[i][lusechan,:] # K passed in must be a list of matrices
+                
         #SSeI = SSe.I
         
         SS = (KK @ SSa @ KK.T + SSe).I 
