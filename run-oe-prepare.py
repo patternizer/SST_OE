@@ -13,6 +13,15 @@ from functions_derive_coeffs import *
 
 def prepare_matchups(sensor,year):
 
+    if sensor == 'MTA':
+        sat2 = 'ma'
+    elif sensor == 'N19':
+        sat2 = 'n19'
+    elif sensor == 'N16':
+        sat2 = 'n16'
+    elif sensor == 'N15':
+        sat2 = 'n15'
+
     FUNCpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
     import sys
     sys.path.append(FUNCpath)    
@@ -31,9 +40,9 @@ def prepare_matchups(sensor,year):
     fn = check_compatible_files(path, dirS, dirG)
     for f in fn:
     
-        dsS = read_files(path, dirS, [f], reduce = True, dimstr = 'matchup_count')
-        dsG = read_files(path, dirG, [f], reduce = True)
-        keep = filter_matches(dsG, dsS, sstminQL = 5)
+        dsS = read_files(path, dirS, [f], reduce = True, dimstr = 'matchup_count', satcode=sat2)
+        dsG = read_files(path, dirG, [f], reduce = True, satcode=sat2)
+        keep = filter_matches(dsG, dsS, sstminQL = 5, satcode=sat2)
         nm = np.sum(keep)
         dsG['keep'] = ('record', keep)
         dsS['keep'] = ('matchup_count', keep)    
