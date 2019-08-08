@@ -244,15 +244,15 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     fig = plt.figure(figsize=(12,8))
     axs = fig.add_subplot(2, 2, 3)
     h2 = axs.hist2d(lon, lat, bins=90, range=[[-180,180],[-90,90]], vmin=0)
-    h2.title('histogram of (lon,lat)')
+    plt.title('histogram of (lon,lat)')
     ax1 = fig.add_subplot(2, 2, 4)
     hy = ax1.hist(lat, 90, [-90,90], orientation='horizontal')
-    hy.title('histogram of lat')
+    plt.title('histogram of lat')
     ax1.set_yticklabels([])
     axs.get_shared_y_axes().join(axs,ax1)
     ax2 = fig.add_subplot(2, 2, 1)
     hx = ax2.hist(lon, 90, [-180,180])
-    hx.title('histogram of lon')
+    plt.title('histogram of lon')
     ax2.set_xticklabels([])
     axs.get_shared_x_axes().join(axs,ax2)
     axs.set_xlim(-180,180)
@@ -983,19 +983,17 @@ def piecewise_model(model, auxvar,  vaux, extrapolate = False):
 #%%
 
 
-#def results_to_netcdf(current_sensor,year,beta1,gamma1,gvals1,gc1,Sbeta1,Sgamma1,stats1):
+def results_to_netcdf(current_sensor,year,beta1,gamma1,gvals1,gc1,Sbeta1,Sgamma1,stats1):
 
-#    file_out = current_sensor + "_" + str(year) + ".nc"
-#    data_out = xarray.Dataset()
-#    data_out["beta1"] = (("beta1",), beta1)
-#    data_out["gamma1"] = (("gamma1",), gamma1)
-#    data_out["gvals1"] = (("gvals1",), gvals)
-#    data_out["gc1"] = (("gc1",), gc1)
-#    data_out["Sbeta1"] = (("Sbeta1",), Sbeta1)
-#    data_out["Sgamma1"] = (("Sgamma1",), Sgamma1)
-#    data_out["stats1"] = (("stats1",), stats1)
-#    data_out.attrs={'Conventions':'CF-1.6', 'title':'Output data', 'summary':'Data generated'}
-#    data_out.to_netcdf(file_out)
-#    data_out.close()
+    file_out = current_sensor + "_" + str(year) + ".npy"
+    df = {}
+    df['beta1'] = beta1
+    df['gamma1'] = gamma1
+    df['gvals1'] = gvals1
+    df['gc1'] = gc1
+    df['Sbeta1'] = Sbeta1
+    df['Sgamma1'] = Sgamma1
+    df['stats1'] = stats1
+    np.save(file_out, df, allow_pickle=True)
 
     
