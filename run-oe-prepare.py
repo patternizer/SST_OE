@@ -7,6 +7,7 @@ from  optparse import OptionParser
 import datetime
 import numpy as np
 import xarray as xr
+os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 import pickle
 import dask
 from functions_derive_coeffs import *
