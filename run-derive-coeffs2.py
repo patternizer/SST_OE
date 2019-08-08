@@ -107,13 +107,13 @@ def derive_coeffs(sensor,year,FLAG_reduce):
         prt1,prt2,prt3,prt4, \
         solz, satz, lat, lon, \
         time, elem, line, \
-        w, U, sec, xb = extract_vars(dsG, dsS)
+        w, U, sec, xb = extract_vars(dsG, dsS, satcode = sat2)
    
     # Some plots just to see how the data are distributed
     run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, y1, y2, y3a, y3, y4, y5, solz, satz, lat, lon, time, elem, line, w, runtag)
 
     # Read in the starting point calibration coefficients
-    beta, ubeta, Sbeta = read_harm_init(Hpath,'m02')
+    beta, ubeta, Sbeta = read_harm_init(Hpath,current_sensor)
 
     # Calculate the observation BTs using these calibration coefficients
 
@@ -130,20 +130,24 @@ def derive_coeffs(sensor,year,FLAG_reduce):
     # created lict values
     lict3, lict4, lict5 = bt2rad(tict,3,lut), bt2rad(tict,4,lut), bt2rad(tict,5,lut)
 
+    calinfo = [c3,cs3,cict3,lict3,c4,cs4,cict4,lict4,c5,cs5,cict5,lict5,nT]
+
     # calculate the new "observed" BTs
-    l3 = count2rad(c3,cs3,cict3,lict3,nT,3,beta[0:4])
-    t3 = rad2bt(l3,3,lut)
-    tb3 = dbtdL(t3,3,lut) * drad_da(c3,cs3,cict3,lict3,nT,3)
+    l3,t3,tb3,l4,t4,tb4,l5,t5,tb5,only2chan = calc_obs(calinfo, tict, lut, beta)
+
+    # l3 = count2rad(c3,cs3,cict3,lict3,nT,3,beta[0:4])
+    # t3 = rad2bt(l3,3,lut)
+    # tb3 = dbtdL(t3,3,lut) * drad_da(c3,cs3,cict3,lict3,nT,3)
 
     only2chan = np.where(t3 == np.nan) # flag for when only 11 and 12 are present
 
-    l4 = count2rad2(c4,cs4,cict4,lict4,nT,4,beta[4:8])
-    t4 = rad2bt(l4,4,lut)
-    tb4 = dbtdL(t4,4,lut) * drad_da(c4,cs4,cict4,lict4,nT,4)
+    # l4 = count2rad2(c4,cs4,cict4,lict4,nT,4,beta[4:8])
+    # t4 = rad2bt(l4,4,lut)
+    # tb4 = dbtdL(t4,4,lut) * drad_da(c4,cs4,cict4,lict4,nT,4)
 
-    l5 = count2rad2(c5,cs5,cict5,lict5,nT,5,beta[8:])
-    t5 = rad2bt(l5,5,lut)
-    tb5 = dbtdL(t5,5,lut) * drad_da(c5,cs5,cict5,lict5,nT,5)
+    # l5 = count2rad2(c5,cs5,cict5,lict5,nT,5,beta[8:])
+    # t5 = rad2bt(l5,5,lut)
+    # tb5 = dbtdL(t5,5,lut) * drad_da(c5,cs5,cict5,lict5,nT,5)
 
     fig,ax = plt.subplots()
     plt.plot(t3,l3,'.')
@@ -200,7 +204,7 @@ def derive_coeffs(sensor,year,FLAG_reduce):
     xt = xb-0.17+273.15 # the reference skin temperature we assume
 
     # Create the data for non-bias aware OE in matrix form
-    Yn, Fn, Fx, Fw, Zan, K = make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, x + np.mean(xt-x), y3, y4, y5, w, adj_for_x = True, fix_ch3_nan = True)
+    Yn, Fn, Fx, Fw, Zan, K = make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, x + np.mean(xt-x), y3, y4, y5, w, solz, adj_for_x = True, fix_ch3_nan = True)
     nc = np.shape(Yn)[0]
 
     # Set up initial estimates of covariance matrices for a first retrieval attempt using uncertainty appropriate to prior
@@ -213,10 +217,22 @@ def derive_coeffs(sensor,year,FLAG_reduce):
     print('---------- STATS and PLOTS no bias correction using GBCS cal & initial covariances ------------')
     stats0 = diagnostic_plots(runtag, xoe0, xt, solz, satz, lat, lon, time, elem, w, U, sens0)
 
+    # Now the same, but only two channels all the time
+
+    Zr, Sr, Ar = optimal_estimates(Zan, K, SSan, SSen, Yn, Fn, usechan=[False,True,True])
+    xoe0s = np.array(Zr[0,:] ).squeeze()
+    sens0s = np.array(Ar[0,0] ).squeeze()*100
+    ux0s = np.sqrt(np.array(Sr[0,0] ).squeeze())
+
+    print('---------- STATS and PLOTS no bias correction using GBCS cal & initial covariance\
+s ------------')
+    stats0s = diagnostic_plots(runtag, xoe0s, xt, solz, satz, lat, lon, time, elem, w, U, sens0s)
+
     # Same again, new harmonisation for comparison
+
     # Create the data for non-bias aware OE in matrix form
     # NOTE also changes the inputs if fix_ch3_nan is TRUE
-    Yn, Fn, Fx, Fw, Zan, K = make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, x+ np.mean(xt-x), t3, t4, t5, w, adj_for_x = True, fix_ch3_nan = True)
+    Yn, Fn, Fx, Fw, Zan, K = make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, x+ np.mean(xt-x), t3, t4, t5, w, solz, adj_for_x = True, fix_ch3_nan = True)
     nc = np.shape(Yn)[0]
 
     # Set up initial estimates of covariance matrices for a first retrieval attempt using uncertainty appropriate to prior
@@ -231,20 +247,34 @@ def derive_coeffs(sensor,year,FLAG_reduce):
     print('---------- STATS and PLOTS no bias correction using GBCS cal & initial covariances ------------')
     stats0 = diagnostic_plots(runtag, xoe0, xt, solz, satz, lat, lon, time, elem, w, U, sens0)
 
-    # Undertake an initial OE starting from NWP prior and see how close we get buoy truth using only the split window
-    Zr, Sr, Ar = optimal_estimates(Zan, K, SSan, SSen, Yn, Fn,usechan=[False,True,True])
-    xoe0 = np.array(Zr[0,:] ).squeeze()
-    sens0 = np.array(Ar[0,0] ).squeeze()*100
-    ux0 = np.sqrt(np.array(Sr[0,0] ).squeeze())
+    # New harmonisation using only the split window
 
-    print('---------- STATS and PLOTS no bias correction using GBCS cal & initial covariances ------------')
-    stats0 = diagnostic_plots(runtag, xoe0, xt, solz, satz, lat, lon, time, elem, w, U, sens0)
+    Zr, Sr, Ar = optimal_estimates(Zan, K, SSan, SSen, Yn, Fn,usechan=[False,True,True])
+    xoe0s = np.array(Zr[0,:] ).squeeze()
+    sens0s = np.array(Ar[0,0] ).squeeze()*100
+    ux0s = np.sqrt(np.array(Sr[0,0] ).squeeze())
+
+    print('---------- STATS and PLOTS and Ralf Harmonisation initial SPLIT WINDOW ----------\
+--')
+    stats0s = diagnostic_plots(runtag, xoe0s, xt, solz, satz, lat, lon, time, elem, w, U, sens0s)
+
+    drop_day = True
+
     # Adjust the simulations to match the starting point from skin-adjusted buoy SST
-    Y0, F0, Fx0, Fw0, Z0, K0 = make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, xt, t3, t4, t5, w, adj_for_x = True)
+
+    Y0, F0, Fx0, Fw0, Z0, K0 = make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, xt, t3, t4, t5, w, solz, adj_for_x = True, drop_day = drop_day)
+
+    cw, cx, csec = np.copy([w, x, sec])
+    ngt = (solz > 90)
+
+    if drop_day:
+        cw, cx, csec =  cw[ngt], cx[ngt], sec[ngt]
+
     # Set up initial estimates of covariance matrices using uncertainty appropriate to buoy as prior
-    SSe0, SSa0 = initial_covs(sec, w, xatype = 'buoy', scale = 0.25) 
+    SSe0, SSa0 = initial_covs(csec, cw, xatype = 'buoy', scale = 0.25) 
 
     # Set the coefficients we are going to optimise
+
     # coef_list = [True, False, False, False, True, False, False, False, True, False, False, False]  # this is doing only offset coeffciients
     coef_list = [True, True , False, False, True, True , False, False, True, True , False, False]  # this is doing only offset and emissivity 
 
@@ -254,14 +284,21 @@ def derive_coeffs(sensor,year,FLAG_reduce):
     # List of arrays to pass all the counts and calibration counts
     calinfo = [c3,cs3,cict3,lict3,c4,cs4,cict4,lict4,c5,cs5,cict5,lict5,nT]
 
+    ccalinfo = np.copy(calinfo)
+    if drop_day:
+        cc3,ccs3,ccict3,clict3,cc4,ccs4,ccict4,clict4,cc5,ccs5,ccict5,clict5,cnT = [f[ngt] for f in calinfo]
+    ccalinfo = [cc3,ccs3,ccict3,clict3,cc4,ccs4,ccict4,clict4,cc5,ccs5,ccict5,clict5,cnT]
+
     # The initial estimate of prior TCWV bias and uncertainty, in strata
     gamma0 = np.zeros(divsg)
     ugamma0 = np.full(divsg, 0.2) # which is about 1% of the mean TCWV to start with
 
-    beta1, gamma1, gvals1, gc1, Sbeta1, Sgamma1 = update_beta_gamma3(runtag, F0, Fx0, Fw0, Z0, SSe0, SSa0, beta, coef_list, gamma0, w, divsg, 1000000, lut, calinfo, Sbeta*400, ugamma0,  accel = 5, extrapolate = True)
+    beta1, gamma1, gvals1, gc1, Sbeta1, Sgamma1 = update_beta_gamma3(runtag, F0, Fx0, Fw0, Z0, SSe0, SSa0, beta, coef_list, gamma0, cw, divsg, 500000, lut, calinfo, Sbeta*400, ugamma0,  accel = 5, extrapolate = True)
     # *X and accel are just to allow values to change more rapidly -- plots verify that it is still stable
 
     l3r,t3r,tb3r,l4r,t4r,tb4r,l5r,t5r,tb5r,only2chan = calc_obs(calinfo, tict, lut, beta1)
+
+    gc1 = piecewise_model(gamma1, w, gvals1, extrapolate = True)
 
     # Some sanity checks
     np.nanmean(t3r-t3)
@@ -272,7 +309,7 @@ def derive_coeffs(sensor,year,FLAG_reduce):
     np.sum(np.nanmean(tb5,axis=1)*(beta1-beta)[8:])
 
     # Now do a new retrieval 
-    Y1, F1, Fx1, Fw1, Za1, K1 = make_matrices(f3+gc1*fw3/w, f4+gc1*fw4/w, f5+gc1*fw5/w, fx3, fx4, fx5, fw3, fw4, fw5, x, x+ np.mean(xt-x), t3r, t4r, t5r, w+gc1, adj_for_x = True, fix_ch3_nan = True)
+    Y1, F1, Fx1, Fw1, Za1, K1 = make_matrices(f3+gc1*fw3/w, f4+gc1*fw4/w, f5+gc1*fw5/w, fx3, fx4, fx5, fw3, fw4, fw5, x, x+ np.mean(xt-x), t3r, t4r, t5r, w+gc1, solz, adj_for_x = True, fix_ch3_nan = True)
     nc = np.shape(Y1)[0]
 
     # Set up initial estimates of covariance matrices for a first retrieval attempt using uncertainty appropriate to prior
@@ -346,4 +383,6 @@ if __name__ == "__main__":
     derive_coeffs(sensor,year,FLAG_reduce)
 
 print('** END')
+
+
 
