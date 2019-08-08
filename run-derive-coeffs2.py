@@ -37,7 +37,11 @@ def derive_coeffs(sensor,year,FLAG_reduce):
     sys.path.append(FUNCpath)
 
     # Local path names for MMD and GBCS  matchup data
-    path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
+    if FLAG_reduce:
+        path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/DATA/'
+    else:
+        path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
+
     dirS = 'source/' + sensor + '/' + str(year) + '/'
     dirG = 'gbcsout/' + sensor + '/' + str(year) + '/'
     pathout = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
@@ -338,7 +342,7 @@ if __name__ == "__main__":
     sensor = args[0]
     year = int(args[1])
 
-    FLAG_reduce = False
+    FLAG_reduce = True
     derive_coeffs(sensor,year,FLAG_reduce)
 
 print('** END')
