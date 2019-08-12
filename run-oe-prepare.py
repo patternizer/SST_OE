@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -7,7 +7,6 @@ from  optparse import OptionParser
 import datetime
 import numpy as np
 import xarray as xr
-os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 import pickle
 import dask
 from functions_derive_coeffs import *
@@ -40,7 +39,7 @@ def prepare_matchups(sensor,year):
 
     fn = check_compatible_files(path, dirS, dirG)
     for f in fn:
-    
+        print(f)
         dsS = read_files(path, dirS, [f], reduce = True, dimstr = 'matchup_count', satcode=sat2)
         dsG = read_files(path, dirG, [f], reduce = True, satcode=sat2)
         keep = filter_matches(dsG, dsS, sstminQL = 5, satcode=sat2)
