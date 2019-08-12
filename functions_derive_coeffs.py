@@ -12,7 +12,6 @@ import numpy as np
 import xarray as xr
 import cartopy.crs as ccrs
 import matplotlib.pylab as plt
-os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 import pickle
 import dask
 
@@ -334,10 +333,14 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
 
 def read_harm_init(Hpath, current_sensor):
     
+    if current_sensor == 'ma': current_sensor = 'm02'
     # The Harmonisation file for 3.7 um
     hp = xr.open_dataset(Hpath+'FIDUCEO_Harmonisation_Data_37.nc')
     names = [str(hp['sensor_name'][i])[44:47] for i in range(2,len(hp['sensor_name']))]
-    isen = names.index(current_sensor) # which sensor in the series to get the coefficients for
+    if current_sensor == 'ma':
+        isen = names.index('m02')
+    else:
+        isen = names.index(current_sensor) # which sensor in the series to get the coefficients for
     
     co3 = np.array(hp['parameter'][isen*3:(isen*3+3)])
     co3 = np.array([co3[0],co3[1],0.0,co3[2]])  # add zero non-linearity coefficient in right place
@@ -366,8 +369,9 @@ def read_harm_init(Hpath, current_sensor):
     Sbeta[0:4,0:4] = Sco3
     Sbeta[4:8,4:8] = Sco4
     Sbeta[8:,8:] = Sco5    
+    pnorm = np.array([hp['sensor_equation_config'][isen*2:(isen*2+2) ]]).squeeze()
 
-    return beta, ubeta, Sbeta
+    return beta, ubeta, Sbeta, pnorm
 
 #%%
 
@@ -376,7 +380,10 @@ def read_harm_init2(Hpath, current_sensor):
     # The Harmonisation file for 3.7 um
     hp = xr.open_dataset(Hpath+'FIDUCEO_Harmonisation_Data_37.nc')
     names = [str(hp['sensor_name'][i])[44:47] for i in range(2,len(hp['sensor_name']))]
-    isen = names.index(current_sensor) # which sensor in the series to get the coefficients for
+    if current_sensor == 'ma':
+        isen = names.index('m02')
+    else:
+        isen = names.index(current_sensor) # which sensor in the series to get the coefficients for
     
     co3 = np.array(hp['parameter'][isen*3:(isen*3+3)])
     uco3 = np.array(hp['parameter_uncertainty'][isen*3:(isen*3+3)])
