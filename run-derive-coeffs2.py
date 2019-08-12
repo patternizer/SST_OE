@@ -41,7 +41,6 @@ def derive_coeffs(sensor,year,FLAG_reduce):
         path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/DATA/'
     else:
         path = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
-
     dirS = 'source/' + sensor + '/' + str(year) + '/'
     dirG = 'gbcsout/' + sensor + '/' + str(year) + '/'
     pathout = '/gws/nopw/j04/fiduceo/Users/mtaylor/sst_oe/'
@@ -113,19 +112,20 @@ def derive_coeffs(sensor,year,FLAG_reduce):
     run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, y1, y2, y3a, y3, y4, y5, solz, satz, lat, lon, time, elem, line, w, runtag)
 
     # Read in the starting point calibration coefficients
-    beta, ubeta, Sbeta = read_harm_init(Hpath,current_sensor)
+    beta, ubeta, Sbeta, pnorm = read_harm_init(Hpath,current_sensor)
 
     # Calculate the observation BTs using these calibration coefficients
 
     # first, turn Tinst into normalised Tinst
-    if current_sensor == 'ma':
-        nT = (tinst - 286.125823)/0.049088
-    elif current_sensor == 'n19':
-        nT = (tinst - 287.754638)/0.117681
-    elif current_sensor == 'n16':
-        nT = (tinst - 292.672201)/3.805704
-    elif current_sensor == 'n15':
-        nT = (tinst - 294.758564)/2.804361
+    nT = (tinst - pnorm[0])/pnorm[1]
+    #if current_sensor == 'ma':
+    #    nT = (tinst - 286.125823)/0.049088
+    #elif current_sensor == 'n19':
+    #    nT = (tinst - 287.754638)/0.117681
+    #elif current_sensor == 'n16':
+    #    nT = (tinst - 292.672201)/3.805704
+    #elif current_sensor == 'n15':
+    #    nT = (tinst - 294.758564)/2.804361
 
     # created lict values
     lict3, lict4, lict5 = bt2rad(tict,3,lut), bt2rad(tict,4,lut), bt2rad(tict,5,lut)
