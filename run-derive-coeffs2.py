@@ -9,7 +9,7 @@ import numpy as np
 import xarray as xr
 import cartopy.crs as ccrs
 import matplotlib.pylab as plt
-os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
+#os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 import pickle
 import dask
 from functions_derive_coeffs import *
@@ -65,10 +65,10 @@ def derive_coeffs(sensor,year,FLAG_reduce):
 
             print(f)
             # Read and concatenate a selection of files (defined by fn[selected])
-            dsS = read_files(path, dirS, [f], reduce = True, dimstr = 'matchup_count', satcode=sat2)
+            dsS = read_files(path, dirS, [f], reduce = True, dimstr = 'matchup_count', satcode = sat2)
             dsG = read_files(path, dirG, [f], reduce = True, satcode=sat2)
             # Do checks for clear sky, validity, etc and also that AATSR and AVHRR are collocated
-            keep = filter_matches(dsG, dsS, sstminQL = 5, satcode=sat2)
+            keep = filter_matches(dsG, dsS, sstminQL = 5, satcode = sat2, maxsza = 55.)
             nm = np.sum(keep)
             dsG['keep'] = ('record', keep)
             dsS['keep'] = ('matchup_count', keep)
@@ -117,7 +117,6 @@ def derive_coeffs(sensor,year,FLAG_reduce):
     # Calculate the observation BTs using these calibration coefficients
 
     # first, turn Tinst into normalised Tinst
-    nT = (tinst - pnorm[0])/pnorm[1]
     #if current_sensor == 'ma':
     #    nT = (tinst - 286.125823)/0.049088
     #elif current_sensor == 'n19':
@@ -127,13 +126,15 @@ def derive_coeffs(sensor,year,FLAG_reduce):
     #elif current_sensor == 'n15':
     #    nT = (tinst - 294.758564)/2.804361
 
+    nT = (tinst - pnorm[0])/pnorm[1]
+
     # created lict values
     lict3, lict4, lict5 = bt2rad(tict,3,lut), bt2rad(tict,4,lut), bt2rad(tict,5,lut)
 
     calinfo = [c3,cs3,cict3,lict3,c4,cs4,cict4,lict4,c5,cs5,cict5,lict5,nT]
 
     # calculate the new "observed" BTs
-    l3,t3,tb3,l4,t4,tb4,l5,t5,tb5,only2chan = calc_obs(calinfo, tict, lut, beta)
+    l3,t3,tb3,l4,t4,tb4,l5,t5,tb5,only2chan = calc_obs(calinfo, tict, beta, lut)
 
     # l3 = count2rad(c3,cs3,cict3,lict3,nT,3,beta[0:4])
     # t3 = rad2bt(l3,3,lut)
@@ -258,7 +259,7 @@ s ------------')
 --')
     stats0s = diagnostic_plots(runtag, xoe0s, xt, solz, satz, lat, lon, time, elem, w, U, sens0s)
 
-    drop_day = True
+    drop_day = False
 
     # Adjust the simulations to match the starting point from skin-adjusted buoy SST
 
@@ -296,7 +297,7 @@ s ------------')
     beta1, gamma1, gvals1, gc1, Sbeta1, Sgamma1 = update_beta_gamma3(runtag, F0, Fx0, Fw0, Z0, SSe0, SSa0, beta, coef_list, gamma0, cw, divsg, 500000, lut, calinfo, Sbeta*400, ugamma0,  accel = 5, extrapolate = True)
     # *X and accel are just to allow values to change more rapidly -- plots verify that it is still stable
 
-    l3r,t3r,tb3r,l4r,t4r,tb4r,l5r,t5r,tb5r,only2chan = calc_obs(calinfo, tict, lut, beta1)
+    l3r,t3r,tb3r,l4r,t4r,tb4r,l5r,t5r,tb5r,only2chan = calc_obs(calinfo, tict, beta1, lut)
 
     gc1 = piecewise_model(gamma1, w, gvals1, extrapolate = True)
 
@@ -366,6 +367,21 @@ s ------------')
     plt.plot(t4r,gc1,'.')
     plt.title('TCWV correction vs. BT')
     plt.savefig(runtag+'tcwv-correction-versus-bt.png')
+    plt.close('all')
+
+
+    # Formulate gamma correction more simply for the SST CCI processor                  
+
+    fgamma1 = 1.0 + gamma1/gvals1
+    A = np.vstack([gvals1, np.ones(len(gvals1))]).T
+    m, c = np.linalg.lstsq(A,fgamma1)[0]
+
+    fig,ax = plt.subplots()
+    plt.plot(w,100*(w+gc1)/w,'.')
+    plt.plot(w,100*(m*w+c))
+    plt.plot(gvals1,100*fgamma1,'o',color='red')
+    plt.title('gvals1 vs. 100*fgamma1')
+    plt.savefig(runtag+'gvals-versus-fgamma1.png')
     plt.close('all')
 
     results_to_netcdf(beta1,gamma1,gvals1,gc1,Sbeta1,Sgamma1,stats1,runtag)
