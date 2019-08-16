@@ -104,11 +104,15 @@ def read_files(path, dirX, flist, dimstr = 'record', reduce = False, satcode = '
         try:
             ds1a = ds.drop('avhrr-'+satcode+'_dtime') # this is a work-around, as this variable makes
                         # the concat method fail for reasons I don't understand
-            ds1 = ds1a.drop_dims('insitu.ntime') # don't need these
         except:
-            ds1 = ds
+            ds1a = ds
+
+        try:
+            ds1b = ds1a.drop_dims('insitu.ntime') # don't need these
+        except:
+            ds1b = ds1a
             
-        data.append(ds1)
+        data.append(ds1b)
         
     ds2 = xr.concat(data, dim=(dimstr))
 
@@ -143,17 +147,17 @@ def filter_matches(dsG, dsS, minpclr = 0.9,  sstminQL = 4, maxsza = 45., satcode
     flagS = np.array(dsG['gbcs.flags'][:,cbox,cbox]).astype('int')
     keep = np.logical_and(keep, np.logical_or(flagS == 128, flagS == 256))
 
-    Kcheck_tcwv4 = np.array(dsG['ffm.dbt_dtcwv_4'])[:,0,0]
-    keep = np.logical_and(keep, np.isfinite(Kcheck_tcwv4))
+    Kcheck = np.array(dsG['ffm.dbt_dtcwv_4'])[:,0,0]
+    keep = np.logical_and(keep, np.isfinite(Kcheck))
 
-    Kcheck_tcwv5 = np.array(dsG['ffm.dbt_dtcwv_5'])[:,0,0]
-    keep = np.logical_and(keep, np.isfinite(Kcheck_tcwv5))
+    Kcheck = np.array(dsG['ffm.dbt_dtcwv_5'])[:,0,0]
+    keep = np.logical_and(keep, np.isfinite(Kcheck))
 
-    Kcheck_sst4 = np.array(dsG['ffm.dbt_dsst_4'])[:,0,0]
-    keep = np.logical_and(keep, np.isfinite(Kcheck_sst4))
+    Kcheck = np.array(dsG['ffm.dbt_dsst_4'])[:,0,0]
+    keep = np.logical_and(keep, np.isfinite(Kcheck))
 
-    Kcheck_sst5 = np.array(dsG['ffm.dbt_dsst_5'])[:,0,0]
-    keep = np.logical_and(keep, np.isfinite(Kcheck_sst5))
+    Kcheck = np.array(dsG['ffm.dbt_dsst_5'])[:,0,0]
+    keep = np.logical_and(keep, np.isfinite(Kcheck))
 
     return keep
 
@@ -190,6 +194,7 @@ def extract_vars(dsG, dsS, satcode = 'ma'):
              'avhrr-'+satcode+'_prt_1', 'avhrr-'+satcode+'_prt_2', 'avhrr-'+satcode+'_prt_3', 'avhrr-'+satcode+'_prt_4', \
              'avhrr-'+satcode+'_solar_zenith_angle', 'avhrr-'+satcode+'_satellite_zenith_angle',\
              'avhrr-'+satcode+'_lat', 'avhrr-'+satcode+'_lon']
+
     for v in bvars: data.append(np.array(dsS[v][:,cbox,cbox])) 
         
     dum = np.array(dsS['avhrr-'+satcode+'_acquisition_time'][0:-1,cbox,cbox])
@@ -333,7 +338,7 @@ def run_checking_plots(mpclr, f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
 
 def read_harm_init(Hpath, current_sensor):
     
-    if current_sensor == 'ma': current_sensor = 'm02'
+    # if current_sensor == 'ma': current_sensor = 'm02'
     # The Harmonisation file for 3.7 um
     hp = xr.open_dataset(Hpath+'FIDUCEO_Harmonisation_Data_37.nc')
     names = [str(hp['sensor_name'][i])[44:47] for i in range(2,len(hp['sensor_name']))]
@@ -422,7 +427,6 @@ def count2rad(Ce,Cs,Cict,Lict,Tinst,channel,coef):
     
     L = a1 + ((Lict * (0.985140 + a2)) / (Cict - Cs) + a3 * (Ce - Cict)) * (Ce - Cs) + a4 * Tinst 
 
-
     return L
 
 def count2rad2(Ce,Cs,Cict,Lict,Tinst,channel,coef):
@@ -455,18 +459,12 @@ def read_in_LUT(avhrr_sat, lutdir = './'):
     return LUT
 
 def rad2bt(L,channel,lut):
-#    BT = np.interp(L,lut['L'][:,channel],lut['BT'][:,channel],left=-999.9,right=-999.9)
     BT = np.interp(L,lut['L'][:,channel],lut['BT'][:,channel],left=np.nan,right=np.nan)
     return BT
 
-
-
 def bt2rad(BT,channel,lut):
-#    L = np.interp(BT,lut['BT'][:,channel],lut['L'][:,channel],left=-999.9,right=-999.9)
     L = np.interp(BT,lut['BT'][:,channel],lut['L'][:,channel],left=np.nan,right=np.nan)
     return L
-
-
 
 def drad_da2(Ce,Cs,Cict,Lict,Tinst,channel):
 
@@ -479,7 +477,6 @@ def drad_da2(Ce,Cs,Cict,Lict,Tinst,channel):
     else:
         return np.array([drad_da1,drad_da2,drad_da3,drad_da4])
 
-
 def drad_da(Ce,Cs,Cict,Lict,Tinst,channel):
 
     drad_da1 = Lict/Lict
@@ -487,17 +484,13 @@ def drad_da(Ce,Cs,Cict,Lict,Tinst,channel):
     drad_da3 = (Ce - Cict) * (Ce - Cs)
     drad_da4 = Tinst
     return np.array([drad_da1,drad_da2,drad_da3,drad_da4])
-        
-       
+               
 def dbtdL(T,channel,lut):
     from scipy import interpolate
     grads = np.array(np.gradient(lut['L'][:,channel],lut['BT'][:,channel])[:])
     f = interpolate.interp1d(lut['BT'][:,channel],grads)
     return 1/f(T)
 
-#%%
-    
-#def make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, xret, y3, y4, y5, w, adj_for_x = True, fix_ch3_nan = False):
 def make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     xret, y3, y4, y5, w, solz, adj_for_x = True, fix_ch3_nan = True, exc_ch3_day = True, drop_day = False):
 
@@ -513,10 +506,6 @@ def make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
                   cxret, cy3, cy4, cy5, cw, csolz]]
 
     if fix_ch3_nan:
-        # isnan = np.isnan(y3)
-        # y3[isnan] = 290 # purely nominal typical value, not to be used in retrieval
-        # fx3[isnan] = 0.0 # giving no sensitivity to this channel
-        # fw3[isnan] = 0.0
         isnan = np.isnan(cy3)
         cfx3[isnan] = 0.0 # giving no sensitivity to this channel
         cfw3[isnan] = 0.0
@@ -527,12 +516,6 @@ def make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
         cfx3[isexc] = 0.0 # giving no sensitivity to this channel
         cfw3[isexc] = 0.0
             
-    # Y  = np.asmatrix((y3, y4, y5))
-    # F  = np.asmatrix((f3, f4, f5))
-    # Fx = np.asmatrix((fx3, fx4, fx5))
-    # Fw = np.asmatrix((fw3/w, fw4/w, fw5/w)) # converting dY/(dw/w) into dYdw
-    # Za = np.asmatrix((x, w))   
-
     Y  = np.asmatrix((cy3, cy4, cy5))
     F  = np.asmatrix((cf3, cf4, cf5))
     Fx = np.asmatrix((cfx3, cfx4, cfx5))
@@ -540,9 +523,6 @@ def make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
     Za = np.asmatrix((cx, cw))      
     
     if adj_for_x: 
-        # for i in range(np.size(x)):
-        #    F[:,i] += (xret - x)[i]*Fx[:,i]
-        # Za[0,:] = xret
         for i in range(np.size(cx)):
             F[:,i] += (cxret - cx)[i]*Fx[:,i]
         Za[0,:] = cxret
@@ -553,7 +533,6 @@ def make_matrices(f3, f4, f5, fx3, fx4, fx5, fw3, fw4, fw5, x, \
 
     return Y, F, Fx, Fw, Za, K # K is a list of matrices
 
-        #%%
 def initial_covs(sec, w, xatype = 'd3', xatypes = {'buoy':0.2, 'd3':0.15, 'd2':0.25, 'nwp':0.55,  'clim':1.0} , scale = 1.):
     
     nm = np.size(sec)
@@ -569,9 +548,7 @@ def initial_covs(sec, w, xatype = 'd3', xatypes = {'buoy':0.2, 'd3':0.15, 'd2':0
         Sa0[:,:,i] =  np.diag([ux**2, ((1.6+0.04*w[i])**2)*scale])
         
     return Se0, Sa0
-    
-#%%
-   
+       
 def optimal_estimate(ZZa, KK, SSa, SSe, YY, FF):
     
     SSeI = SSe.I
@@ -586,9 +563,6 @@ def optimal_estimate(ZZa, KK, SSa, SSe, YY, FF):
     
     return ZZ, SS, AA
 
-
-#%%
-
 def optimal_estimates(Z, K, Sa, Se, Y, F, usechan = -1):
     
     nm = np.size(Z[0,:])
@@ -600,18 +574,14 @@ def optimal_estimates(Z, K, Sa, Se, Y, F, usechan = -1):
     
     for i in range(nm):   
         
-        # YY = Y[usechan,i]    
         cy = np.array(np.copy(Y[:,i])).squeeze()
         lusechan = np.logical_and(usechan, np.isfinite(cy))        
         YY = Y[lusechan,i]    
 
-        # SSe = np.asmatrix(Se[:,:,i])[usechan,:][:,usechan]
         SSe = np.asmatrix(Se[:,:,i])[lusechan,:][:,lusechan]
         SSa = np.asmatrix(Sa[:,:,i])
             
         ZZa = Z[:,i]    
-        # FF = F[usechan,i]    
-        # KK = K[i][usechan,:] # K passed in must be a list of matrices
         FF = F[lusechan,i]    
         KK = K[i][lusechan,:] # K passed in must be a list of matrices
                 
@@ -643,9 +613,6 @@ def optimal_estimates(Z, K, Sa, Se, Y, F, usechan = -1):
         
     return Zr, Sr, Ar
     
-
-#%%
-
 def summary_stats(data, stratified = False, sdata = -1, stitle = 'unspecified',
                   strata = -1, title = 'data', units = 'K', 
                   precision = 3, exact = False, output = False):
@@ -706,10 +673,6 @@ def summary_stats(data, stratified = False, sdata = -1, stitle = 'unspecified',
     else:
         return
 
-#%%
-
-
-
 def run_summary_stats(var, title, stratvar, divs, stitle):
     
     strata = np.percentile(stratvar, [np.round(i*1000./divs)/10. for i in range(divs+1)] ) 
@@ -719,9 +682,6 @@ def run_summary_stats(var, title, stratvar, divs, stitle):
                   precision = 3, exact = False, output = True)
     
     return out
-
-#%%^
-
 
 def diagnostic_plots(runtag, xret, xd3, solz, satz, lat, lon, time, elem, \
                      w, U, sens, title = 'AVHRR - Buoy', use_mean = False):
@@ -742,6 +702,7 @@ def diagnostic_plots(runtag, xret, xd3, solz, satz, lat, lon, time, elem, \
     invars.append([xret-xd3, title, U, 10, 'Wind',lat,'Lat'])
     invars.append([xret-xd3, title, xd3, 10, 'SST',w,'TCWV'])
     invars.append([xret-xd3, title, solz, 10, 'Sol ZA',sens,'Sens.'])
+    invars.append([xret-xd3, title,  time.astype('int64')/1e9/3600/24/365.25+1970, 10, 'Time',lat,'Latit'])
 
     outvars = []
     k = 0
@@ -772,9 +733,7 @@ def diagnostic_plots(runtag, xret, xd3, solz, satz, lat, lon, time, elem, \
     
     return outvars
     
-   #%%    #%%
-
-def calc_obs(calinfo, tict, lut, beta):
+def calc_obs(calinfo, tict, beta, lut):
 
     c3,cs3,cict3,lict3,c4,cs4,cict4,lict4,c5,cs5,cict5,lict5,nT = calinfo
 
@@ -802,9 +761,6 @@ def calc_obs(calinfo, tict, lut, beta):
     tb5 = dbtdL(t5,5,lut) * drad_da(c5,cs5,cict5,lict5,nT,5)
     
     return l3,t3,tb3,l4,t4,tb4,l5,t5,tb5, only2chan
-
-#%%  
-
    
 def update_beta_gamma3(runtag, F, Fx, Fw, Z, Se, Sa, betai, coef_list, gammai, \
                       auxg, divsg, ni, lut, calinfo, betaSi, \
@@ -996,9 +952,6 @@ def update_beta_gamma3(runtag, F, Fx, Fw, Z, Se, Sa, betai, coef_list, gammai, \
         
 
     return betac, gammaout, gvals, gc, betaS.squeeze(), gammaS.squeeze()
-
-#%%
-
 
 def piecewise_model(model, auxvar,  vaux, extrapolate = False):
     """
