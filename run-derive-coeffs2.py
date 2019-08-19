@@ -9,7 +9,7 @@ import numpy as np
 import xarray as xr
 import cartopy.crs as ccrs
 import matplotlib.pylab as plt
-#os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
+os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 import pickle
 import dask
 from functions_derive_coeffs import *
@@ -51,10 +51,10 @@ def derive_coeffs(sensor,year,FLAG_reduce):
         print('directories exist')
 
     # Local path for initial harmonisation coefficients
-    Hpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/HARMONISATION/v0.3Bet/'
+    Hpath = '/gws/nopw/j04/fiduceo/Users/mtaylor/fcdr_st_ensemble/DATA/HARMONISATION/v0.3Bet/'
 
     # Local path + read in LUT for Radiance <-> BT conversion
-    lutdir = '/gws/nopw/j04/fiduceo/Users/mtaylor/ensemble_sst/DATA/'
+    lutdir = '/gws/nopw/j04/fiduceo/Users/mtaylor/fcdr_st_ensemble/DATA/'
     lut = read_in_LUT(sat, lutdir = lutdir)
 
     if FLAG_reduce:
@@ -66,7 +66,7 @@ def derive_coeffs(sensor,year,FLAG_reduce):
             print(f)
             # Read and concatenate a selection of files (defined by fn[selected])
             dsS = read_files(path, dirS, [f], reduce = True, dimstr = 'matchup_count', satcode = sat2)
-            dsG = read_files(path, dirG, [f], reduce = True, satcode=sat2)
+            dsG = read_files(path, dirG, [f], reduce = True, satcode = sat2)
             # Do checks for clear sky, validity, etc and also that AATSR and AVHRR are collocated
             keep = filter_matches(dsG, dsS, sstminQL = 5, satcode = sat2, maxsza = 55.)
             nm = np.sum(keep)
