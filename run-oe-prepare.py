@@ -40,9 +40,9 @@ def prepare_matchups(sensor,year):
     fn = check_compatible_files(path, dirS, dirG)
     for f in fn:
         print(f)
-        dsS = read_files(path, dirS, [f], reduce = True, dimstr = 'matchup_count', satcode=sat2)
-        dsG = read_files(path, dirG, [f], reduce = True, satcode=sat2)
-        keep = filter_matches(dsG, dsS, sstminQL = 5, satcode=sat2)
+        dsS = read_files(path, dirS, [f], reduce = True, dimstr = 'matchup_count', satcode = sat2)
+        dsG = read_files(path, dirG, [f], reduce = True, satcode = sat2)
+        keep = filter_matches(dsG, dsS, sstminQL = 5, satcode = sat2, maxsza = 55.)
         nm = np.sum(keep)
         dsG['keep'] = ('record', keep)
         dsS['keep'] = ('matchup_count', keep)    
