@@ -288,7 +288,7 @@ s ------------')
     ccalinfo = np.copy(calinfo)
     if drop_day:
         cc3,ccs3,ccict3,clict3,cc4,ccs4,ccict4,clict4,cc5,ccs5,ccict5,clict5,cnT = [f[ngt] for f in calinfo]
-    ccalinfo = [cc3,ccs3,ccict3,clict3,cc4,ccs4,ccict4,clict4,cc5,ccs5,ccict5,clict5,cnT]
+        ccalinfo = [cc3,ccs3,ccict3,clict3,cc4,ccs4,ccict4,clict4,cc5,ccs5,ccict5,clict5,cnT]
 
     # The initial estimate of prior TCWV bias and uncertainty, in strata
     gamma0 = np.zeros(divsg)
