@@ -16,8 +16,8 @@ submit(){
 	LOGFILE=$(echo $SAT $year | awk '{ printf "run.%s_%4.4d.log", $1, $2}')
 	LOGDIR="$FIDHOME"	       
 	if [ -d "$LOGDIR" ]; then
-	    echo ${JOBNAME}
-            LOGFILE=${LOGDIR}/${LOGFILE}		    		   
+#	    echo ${JOBNAME}
+#            LOGFILE=${LOGDIR}/${LOGFILE}		    		   
  	    bsub -q short-serial -W24:00 -R "rusage[mem=$MEM_REQ]" -M $MEM_MAX -oo ${LOGFILE} -J "$JOBNAME" $INMYVENV $GENERATE "${SAT}" "${year}"
 	fi
     done    
