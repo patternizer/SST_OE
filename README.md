@@ -34,4 +34,4 @@ The code is distributed under terms and conditions of the [MIT license](https://
 
 ## Contact information
 
-* Michael Taylor (michael.taylor@reading.ac.uk)
+* Michael Taylor (https://patternizer.github.io)
